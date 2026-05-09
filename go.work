@@ -1,0 +1,11 @@
+go 1.22
+
+use (
+	./gen/go
+	./backend/user
+	./backend/post
+	./backend/chat
+	./backend/story
+	./backend/notification
+	./gateway
+)

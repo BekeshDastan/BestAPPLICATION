@@ -1,0 +1,6 @@
+syntax = "proto3";
+package notification.v1;
+option go_package = "github.com/bekesh/social/gen/go/notification/v1;notificationv1";
+
+// NotificationService — in-app + email notifications, settings, devices. 14 RPCs.
+service NotificationService {}

@@ -1,0 +1,6 @@
+syntax = "proto3";
+package chat.v1;
+option go_package = "github.com/bekesh/social/gen/go/chat/v1;chatv1";
+
+// ChatService — direct + group conversations, messages, streaming. 20 RPCs.
+service ChatService {}

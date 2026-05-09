@@ -1,0 +1,6 @@
+syntax = "proto3";
+package story.v1;
+option go_package = "github.com/bekesh/social/gen/go/story/v1;storyv1";
+
+// StoryService — 24h stories, views, highlights. 16 RPCs.
+service StoryService {}

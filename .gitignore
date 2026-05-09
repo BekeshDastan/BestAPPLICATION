@@ -1,0 +1,39 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+
+# Test
+*.test
+*.out
+coverage.*
+*.coverprofile
+
+Plan.md
+
+# Go
+go.work.sum
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Env / secrets
+.env
+.env.local
+*.pem
+*.key
+
+# Frontend
+node_modules/
+.next/
+out/
+
+# Docker volumes
+deploy/data/
