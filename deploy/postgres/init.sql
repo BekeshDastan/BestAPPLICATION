@@ -1,0 +1,5 @@
+CREATE DATABASE user_db;
+CREATE DATABASE post_db;
+CREATE DATABASE chat_db;
+CREATE DATABASE story_db;
+CREATE DATABASE notification_db;

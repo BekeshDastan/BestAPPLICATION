@@ -1,11 +1,6 @@
-go 1.22
+go 1.25.0
 
 use (
-	./gen/go
 	./backend/user
-	./backend/post
-	./backend/chat
-	./backend/story
-	./backend/notification
-	./gateway
+	./gen/go
 )

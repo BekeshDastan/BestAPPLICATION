@@ -1,6 +1,192 @@
 syntax = "proto3";
 package user.v1;
+
 option go_package = "github.com/bekesh/social/gen/go/user/v1;userv1";
 
-// UserService — auth, profiles, follow graph, blocks. 23 RPCs.
-service UserService {}
+// ── Common ─────────────────────────────────────────────────────────────────
+
+message UserProfile {
+  string id         = 1;
+  string username   = 2;
+  string email      = 3;
+  string full_name  = 4;
+  string bio        = 5;
+  string avatar_url = 6;
+  bool   is_verified = 7;
+  bool   is_private  = 8;
+  int64  created_at  = 9;  // unix seconds
+}
+
+message TokenPair {
+  string access_token  = 1;
+  string refresh_token = 2;
+}
+
+// ── Auth ───────────────────────────────────────────────────────────────────
+
+message RegisterRequest {
+  string email    = 1;
+  string username = 2;
+  string password = 3;
+  string full_name = 4;
+}
+message RegisterResponse {
+  UserProfile user = 1;
+  TokenPair   tokens = 2;
+}
+
+message LoginRequest {
+  string email    = 1;
+  string password = 2;
+}
+message LoginResponse {
+  UserProfile user   = 1;
+  TokenPair   tokens = 2;
+}
+
+message LogoutRequest  { string refresh_token = 1; }
+message LogoutResponse {}
+
+message RefreshTokenRequest  { string refresh_token = 1; }
+message RefreshTokenResponse { TokenPair tokens = 1; }
+
+message VerifyEmailRequest  { string token = 1; }
+message VerifyEmailResponse {}
+
+message ResendVerificationRequest  { string email = 1; }
+message ResendVerificationResponse {}
+
+message ForgotPasswordRequest  { string email = 1; }
+message ForgotPasswordResponse {}
+
+message ResetPasswordRequest {
+  string token        = 1;
+  string new_password = 2;
+}
+message ResetPasswordResponse {}
+
+message ChangePasswordRequest {
+  string user_id      = 1;
+  string old_password = 2;
+  string new_password = 3;
+}
+message ChangePasswordResponse {}
+
+message ValidateTokenRequest  { string access_token = 1; }
+message ValidateTokenResponse {
+  string user_id  = 1;
+  string username = 2;
+  string email    = 3;
+}
+
+// ── Profile ────────────────────────────────────────────────────────────────
+
+message GetProfileRequest         { string user_id = 1; }
+message GetProfileByUsernameRequest { string username = 1; }
+message GetProfileResponse        { UserProfile user = 1; }
+
+message UpdateProfileRequest {
+  string user_id   = 1;
+  string full_name = 2;
+  string bio       = 3;
+  bool   is_private = 4;
+}
+message UpdateProfileResponse { UserProfile user = 1; }
+
+message UpdateAvatarRequest {
+  string user_id    = 1;
+  string avatar_url = 2;
+}
+message UpdateAvatarResponse { UserProfile user = 1; }
+
+message DeleteAccountRequest {
+  string user_id  = 1;
+  string password = 2;
+}
+message DeleteAccountResponse {}
+
+message SearchUsersRequest {
+  string query  = 1;
+  int32  limit  = 2;
+  int32  offset = 3;
+}
+message SearchUsersResponse { repeated UserProfile users = 1; }
+
+// ── Follow ─────────────────────────────────────────────────────────────────
+
+message FollowRequest {
+  string follower_id = 1;
+  string followee_id = 2;
+}
+message FollowResponse {}
+
+message UnfollowRequest {
+  string follower_id = 1;
+  string followee_id = 2;
+}
+message UnfollowResponse {}
+
+message ListFollowersRequest {
+  string user_id = 1;
+  int32  limit   = 2;
+  int32  offset  = 3;
+}
+message ListFollowersResponse { repeated UserProfile users = 1; }
+
+message ListFollowingRequest {
+  string user_id = 1;
+  int32  limit   = 2;
+  int32  offset  = 3;
+}
+message ListFollowingResponse { repeated UserProfile users = 1; }
+
+message IsFollowingRequest {
+  string follower_id = 1;
+  string followee_id = 2;
+}
+message IsFollowingResponse { bool is_following = 1; }
+
+message BlockUserRequest {
+  string blocker_id = 1;
+  string blocked_id = 2;
+}
+message BlockUserResponse {}
+
+message UnblockUserRequest {
+  string blocker_id = 1;
+  string blocked_id = 2;
+}
+message UnblockUserResponse {}
+
+// ── Service ────────────────────────────────────────────────────────────────
+
+service UserService {
+  // Auth
+  rpc Register            (RegisterRequest)            returns (RegisterResponse);
+  rpc Login               (LoginRequest)               returns (LoginResponse);
+  rpc Logout              (LogoutRequest)              returns (LogoutResponse);
+  rpc RefreshToken        (RefreshTokenRequest)        returns (RefreshTokenResponse);
+  rpc VerifyEmail         (VerifyEmailRequest)         returns (VerifyEmailResponse);
+  rpc ResendVerification  (ResendVerificationRequest)  returns (ResendVerificationResponse);
+  rpc ForgotPassword      (ForgotPasswordRequest)      returns (ForgotPasswordResponse);
+  rpc ResetPassword       (ResetPasswordRequest)       returns (ResetPasswordResponse);
+  rpc ChangePassword      (ChangePasswordRequest)      returns (ChangePasswordResponse);
+  rpc ValidateToken       (ValidateTokenRequest)       returns (ValidateTokenResponse);
+
+  // Profile
+  rpc GetProfile          (GetProfileRequest)          returns (GetProfileResponse);
+  rpc GetProfileByUsername(GetProfileByUsernameRequest)returns (GetProfileResponse);
+  rpc UpdateProfile       (UpdateProfileRequest)       returns (UpdateProfileResponse);
+  rpc UpdateAvatar        (UpdateAvatarRequest)        returns (UpdateAvatarResponse);
+  rpc DeleteAccount       (DeleteAccountRequest)       returns (DeleteAccountResponse);
+  rpc SearchUsers         (SearchUsersRequest)         returns (SearchUsersResponse);
+
+  // Follow
+  rpc Follow              (FollowRequest)              returns (FollowResponse);
+  rpc Unfollow            (UnfollowRequest)            returns (UnfollowResponse);
+  rpc ListFollowers       (ListFollowersRequest)       returns (ListFollowersResponse);
+  rpc ListFollowing       (ListFollowingRequest)       returns (ListFollowingResponse);
+  rpc IsFollowing         (IsFollowingRequest)         returns (IsFollowingResponse);
+  rpc BlockUser           (BlockUserRequest)           returns (BlockUserResponse);
+  rpc UnblockUser         (UnblockUserRequest)         returns (UnblockUserResponse);
+}
