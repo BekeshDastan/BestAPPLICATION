@@ -1,6 +1,172 @@
 syntax = "proto3";
+
 package notification.v1;
+
 option go_package = "github.com/bekesh/social/gen/go/notification/v1;notificationv1";
 
-// NotificationService — in-app + email notifications, settings, devices. 14 RPCs.
-service NotificationService {}
+// NotificationService — in-app notifications, preferences, and email. 12 RPCs.
+service NotificationService {
+  // Notifications (9)
+  rpc CreateNotification(CreateNotificationRequest)   returns (CreateNotificationResponse);
+  rpc GetNotification(GetNotificationRequest)         returns (GetNotificationResponse);
+  rpc ListNotifications(ListNotificationsRequest)     returns (ListNotificationsResponse);
+  rpc ListUnread(ListUnreadRequest)                   returns (ListUnreadResponse);
+  rpc MarkAsRead(MarkAsReadRequest)                   returns (MarkAsReadResponse);
+  rpc MarkAllAsRead(MarkAllAsReadRequest)             returns (MarkAllAsReadResponse);
+  rpc DeleteNotification(DeleteNotificationRequest)   returns (DeleteNotificationResponse);
+  rpc DeleteAllRead(DeleteAllReadRequest)             returns (DeleteAllReadResponse);
+  rpc GetUnreadCount(GetUnreadCountRequest)           returns (GetUnreadCountResponse);
+
+  // Preferences (2)
+  rpc GetPreferences(GetPreferencesRequest)           returns (GetPreferencesResponse);
+  rpc UpdatePreference(UpdatePreferenceRequest)       returns (UpdatePreferenceResponse);
+
+  // Email (1)
+  rpc SendEmail(SendEmailRequest)                     returns (SendEmailResponse);
+}
+
+// ── Common messages ────────────────────────────────────────────────────────
+
+message NotificationProto {
+  string id             = 1;
+  string user_id        = 2;
+  string actor_id       = 3;
+  string type           = 4;
+  string reference_id   = 5;
+  string reference_type = 6;
+  string message        = 7;
+  bool   is_read        = 8;
+  int64  created_at     = 9;
+}
+
+message PreferenceProto {
+  string user_id       = 1;
+  string type          = 2;
+  bool   email_enabled = 3;
+  bool   push_enabled  = 4;
+}
+
+// ── CreateNotification ─────────────────────────────────────────────────────
+
+message CreateNotificationRequest {
+  string user_id        = 1;
+  string actor_id       = 2;
+  string type           = 3;
+  string reference_id   = 4;
+  string reference_type = 5;
+  string message        = 6;
+}
+
+message CreateNotificationResponse {
+  NotificationProto notification = 1;
+}
+
+// ── GetNotification ────────────────────────────────────────────────────────
+
+message GetNotificationRequest {
+  string id        = 1;
+  string caller_id = 2;
+}
+
+message GetNotificationResponse {
+  NotificationProto notification = 1;
+}
+
+// ── ListNotifications ──────────────────────────────────────────────────────
+
+message ListNotificationsRequest {
+  string user_id = 1;
+  int32  limit   = 2;
+  int32  offset  = 3;
+}
+
+message ListNotificationsResponse {
+  repeated NotificationProto notifications = 1;
+}
+
+// ── ListUnread ─────────────────────────────────────────────────────────────
+
+message ListUnreadRequest {
+  string user_id = 1;
+  int32  limit   = 2;
+  int32  offset  = 3;
+}
+
+message ListUnreadResponse {
+  repeated NotificationProto notifications = 1;
+}
+
+// ── MarkAsRead ─────────────────────────────────────────────────────────────
+
+message MarkAsReadRequest {
+  string id      = 1;
+  string user_id = 2;
+}
+
+message MarkAsReadResponse {}
+
+// ── MarkAllAsRead ──────────────────────────────────────────────────────────
+
+message MarkAllAsReadRequest {
+  string user_id = 1;
+}
+
+message MarkAllAsReadResponse {}
+
+// ── DeleteNotification ─────────────────────────────────────────────────────
+
+message DeleteNotificationRequest {
+  string id      = 1;
+  string user_id = 2;
+}
+
+message DeleteNotificationResponse {}
+
+// ── DeleteAllRead ──────────────────────────────────────────────────────────
+
+message DeleteAllReadRequest {
+  string user_id = 1;
+}
+
+message DeleteAllReadResponse {}
+
+// ── GetUnreadCount ─────────────────────────────────────────────────────────
+
+message GetUnreadCountRequest {
+  string user_id = 1;
+}
+
+message GetUnreadCountResponse {
+  int64 count = 1;
+}
+
+// ── GetPreferences ─────────────────────────────────────────────────────────
+
+message GetPreferencesRequest {
+  string user_id = 1;
+}
+
+message GetPreferencesResponse {
+  repeated PreferenceProto preferences = 1;
+}
+
+// ── UpdatePreference ───────────────────────────────────────────────────────
+
+message UpdatePreferenceRequest {
+  string user_id       = 1;
+  string type          = 2;
+  bool   email_enabled = 3;
+  bool   push_enabled  = 4;
+}
+
+message UpdatePreferenceResponse {}
+
+// ── SendEmail ──────────────────────────────────────────────────────────────
+
+message SendEmailRequest {
+  string to      = 1;
+  string subject = 2;
+  string body    = 3;
+}
+
+message SendEmailResponse {}

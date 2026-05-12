@@ -1,6 +1,190 @@
 syntax = "proto3";
+
 package story.v1;
+
 option go_package = "github.com/bekesh/social/gen/go/story/v1;storyv1";
 
-// StoryService — 24h stories, views, highlights. 16 RPCs.
-service StoryService {}
+// StoryService — 24h stories, views, reactions, highlights, analytics. 16 RPCs.
+service StoryService {
+  // Stories (5)
+  rpc CreateStory(CreateStoryRequest)                       returns (CreateStoryResponse);
+  rpc GetStory(GetStoryRequest)                             returns (GetStoryResponse);
+  rpc DeleteStory(DeleteStoryRequest)                       returns (DeleteStoryResponse);
+  rpc ListUserStories(ListUserStoriesRequest)               returns (ListUserStoriesResponse);
+  rpc ListFollowingStories(ListFollowingRequest)            returns (ListFollowingResponse);
+
+  // Views & Reactions (5)
+  rpc MarkStoryViewed(MarkViewedRequest)                    returns (MarkViewedResponse);
+  rpc ListStoryViewers(ListViewersRequest)                  returns (ListViewersResponse);
+  rpc ReplyToStory(ReplyToStoryRequest)                     returns (ReplyToStoryResponse);
+  rpc AddReaction(AddReactionRequest)                       returns (AddReactionResponse);
+  rpc RemoveReaction(RemoveReactionRequest)                 returns (RemoveReactionResponse);
+
+  // Highlights (5)
+  rpc CreateHighlight(CreateHighlightRequest)               returns (CreateHighlightResponse);
+  rpc AddToHighlight(AddToHighlightRequest)                 returns (AddToHighlightResponse);
+  rpc RemoveFromHighlight(RemoveFromHighlightRequest)       returns (RemoveFromHighlightResponse);
+  rpc ListHighlights(ListHighlightsRequest)                 returns (ListHighlightsResponse);
+  rpc DeleteHighlight(DeleteHighlightRequest)               returns (DeleteHighlightResponse);
+
+  // Analytics (1)
+  rpc GetStoryAnalytics(GetStoryAnalyticsRequest)           returns (GetStoryAnalyticsResponse);
+}
+
+// ── Common messages ────────────────────────────────────────────────────────
+
+message StoryProto {
+  string id          = 1;
+  string user_id     = 2;
+  string media_url   = 3;
+  string media_type  = 4;
+  string caption     = 5;
+  int64  expires_at  = 6;
+  int32  views_count = 7;
+  int64  created_at  = 8;
+}
+
+message HighlightProto {
+  string id         = 1;
+  string user_id    = 2;
+  string title      = 3;
+  string cover_url  = 4;
+  int64  created_at = 5;
+}
+
+message StoryViewProto {
+  string story_id  = 1;
+  string viewer_id = 2;
+  int64  viewed_at = 3;
+}
+
+message StoryReplyProto {
+  string id         = 1;
+  string story_id   = 2;
+  string user_id    = 3;
+  string text       = 4;
+  int64  created_at = 5;
+}
+
+// ── Stories ────────────────────────────────────────────────────────────────
+
+message CreateStoryRequest {
+  string user_id    = 1;
+  string media_url  = 2;
+  string media_type = 3;
+  string caption    = 4;
+}
+message CreateStoryResponse { StoryProto story = 1; }
+
+message GetStoryRequest {
+  string story_id = 1;
+  string user_id  = 2;
+}
+message GetStoryResponse { StoryProto story = 1; }
+
+message DeleteStoryRequest {
+  string story_id = 1;
+  string user_id  = 2;
+}
+message DeleteStoryResponse {}
+
+message ListUserStoriesRequest {
+  string user_id = 1;
+  int32  limit   = 2;
+  int32  offset  = 3;
+}
+message ListUserStoriesResponse { repeated StoryProto stories = 1; }
+
+message ListFollowingRequest {
+  repeated string following_user_ids = 1;
+  string          user_id            = 2;
+  int32           limit              = 3;
+  int32           offset             = 4;
+}
+message ListFollowingResponse { repeated StoryProto stories = 1; }
+
+// ── Views & Reactions ──────────────────────────────────────────────────────
+
+message MarkViewedRequest {
+  string story_id  = 1;
+  string viewer_id = 2;
+}
+message MarkViewedResponse {}
+
+message ListViewersRequest {
+  string story_id = 1;
+  string user_id  = 2;
+  int32  limit    = 3;
+  int32  offset   = 4;
+}
+message ListViewersResponse { repeated StoryViewProto viewers = 1; }
+
+message ReplyToStoryRequest {
+  string story_id = 1;
+  string user_id  = 2;
+  string text     = 3;
+}
+message ReplyToStoryResponse { StoryReplyProto reply = 1; }
+
+message AddReactionRequest {
+  string story_id = 1;
+  string user_id  = 2;
+  string emoji    = 3;
+}
+message AddReactionResponse {}
+
+message RemoveReactionRequest {
+  string story_id = 1;
+  string user_id  = 2;
+}
+message RemoveReactionResponse {}
+
+// ── Highlights ─────────────────────────────────────────────────────────────
+
+message CreateHighlightRequest {
+  string user_id   = 1;
+  string title     = 2;
+  string cover_url = 3;
+}
+message CreateHighlightResponse { HighlightProto highlight = 1; }
+
+message AddToHighlightRequest {
+  string highlight_id = 1;
+  string story_id     = 2;
+  string user_id      = 3;
+}
+message AddToHighlightResponse {}
+
+message RemoveFromHighlightRequest {
+  string highlight_id = 1;
+  string story_id     = 2;
+  string user_id      = 3;
+}
+message RemoveFromHighlightResponse {}
+
+message ListHighlightsRequest {
+  string user_id = 1;
+}
+message ListHighlightsResponse { repeated HighlightProto highlights = 1; }
+
+message DeleteHighlightRequest {
+  string highlight_id = 1;
+  string user_id      = 2;
+}
+message DeleteHighlightResponse {}
+
+// ── Analytics ──────────────────────────────────────────────────────────────
+
+message GetStoryAnalyticsRequest {
+  string story_id = 1;
+  string user_id  = 2;
+}
+message GetStoryAnalyticsResponse {
+  string               story_id    = 1;
+  int32                views_count = 2;
+  repeated ReactionCount reactions = 3;
+}
+message ReactionCount {
+  string emoji = 1;
+  int32  count = 2;
+}
