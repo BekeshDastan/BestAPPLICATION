@@ -102,7 +102,20 @@ func (uc *ProfileUseCase) DeleteAccount(ctx context.Context, userID uuid.UUID, r
 	if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(rawPassword)) != nil {
 		return domain.ErrInvalidCredentials
 	}
-	if err = uc.users.SoftDelete(ctx, userID); err != nil {
+	return uc.deleteUser(ctx, userID)
+}
+
+// AdminDeleteUser removes a user without password verification.
+// Authorisation must be enforced by the caller (gateway admin middleware).
+func (uc *ProfileUseCase) AdminDeleteUser(ctx context.Context, userID uuid.UUID) error {
+	if _, err := uc.users.GetByID(ctx, userID); err != nil {
+		return fmt.Errorf("get user: %w", err)
+	}
+	return uc.deleteUser(ctx, userID)
+}
+
+func (uc *ProfileUseCase) deleteUser(ctx context.Context, userID uuid.UUID) error {
+	if err := uc.users.SoftDelete(ctx, userID); err != nil {
 		return fmt.Errorf("soft delete: %w", err)
 	}
 	_ = uc.cache.InvalidateProfile(ctx, userID)

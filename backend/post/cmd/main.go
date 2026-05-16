@@ -37,6 +37,7 @@ func main() {
 	postRepo := pginfra.NewPostRepo(db)
 	likeRepo := pginfra.NewLikeRepo(db)
 	commentRepo := pginfra.NewCommentRepo(db)
+	saveRepo := pginfra.NewSaveRepo(db)
 
 	// ── Redis ──────────────────────────────────────────────────────────────
 	rdb := redis.NewClient(&redis.Options{
@@ -57,12 +58,14 @@ func main() {
 	postUC := usecase.NewPostUseCase(postRepo, cache, publisher)
 	likeUC := usecase.NewLikeUseCase(postRepo, likeRepo, cache, publisher, txDB)
 	commentUC := usecase.NewCommentUseCase(postRepo, commentRepo, publisher, txDB)
+	saveUC := usecase.NewSaveUseCase(postRepo, saveRepo)
 
 	// ── gRPC transport ─────────────────────────────────────────────────────
 	postH := grpctransport.NewPostHandler(postUC)
 	likeH := grpctransport.NewLikeHandler(likeUC)
 	commentH := grpctransport.NewCommentHandler(commentUC)
-	srv := grpctransport.NewPostServer(postH, likeH, commentH)
+	saveH := grpctransport.NewSaveHandler(saveUC)
+	srv := grpctransport.NewPostServer(postH, likeH, commentH, saveH)
 
 	must(grpctransport.Run(cfg.GRPC.Port, srv), "grpc server")
 }

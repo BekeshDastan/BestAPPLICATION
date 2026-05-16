@@ -4,12 +4,13 @@ import "context"
 
 // Inbound events consumed from NATS (published by other services).
 const (
-	EventPostLiked     = "post.liked"
-	EventPostCommented = "post.commented"
-	EventUserFollowed  = "user.followed"
-	EventUserRegistered = "user.registered"
-	EventStoryViewed   = "story.viewed"
-	EventMessageSent   = "chat.message.sent"
+	EventPostLiked              = "post.liked"
+	EventPostCommented          = "post.commented"
+	EventUserFollowed           = "user.followed"
+	EventUserRegistered         = "user.registered"
+	EventPasswordResetRequested = "user.password_reset_requested"
+	EventStoryViewed            = "story.viewed"
+	EventMessageSent            = "chat.message.sent"
 )
 
 // Outbound events published by the notification service.

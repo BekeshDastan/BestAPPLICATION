@@ -5,13 +5,19 @@ import (
 	"strings"
 
 	postv1 "github.com/bekesh/social/gen/go/post/v1"
+	userv1 "github.com/bekesh/social/gen/go/user/v1"
 	"github.com/bekesh/social/gateway/internal/middleware"
 	"github.com/gin-gonic/gin"
 )
 
-type PostHandler struct{ uc postv1.PostServiceClient }
+type PostHandler struct {
+	uc   postv1.PostServiceClient
+	user userv1.UserServiceClient
+}
 
-func NewPostHandler(uc postv1.PostServiceClient) *PostHandler { return &PostHandler{uc: uc} }
+func NewPostHandler(uc postv1.PostServiceClient, user userv1.UserServiceClient) *PostHandler {
+	return &PostHandler{uc: uc, user: user}
+}
 
 func (h *PostHandler) Create(c *gin.Context) {
 	var req struct {
@@ -80,10 +86,25 @@ func (h *PostHandler) Delete(c *gin.Context) {
 }
 
 func (h *PostHandler) Feed(c *gin.Context) {
-	// GetFeed takes following_ids, populated by the caller via query param
-	followingIDs := strings.Split(c.Query("following_ids"), ",")
-	if len(followingIDs) == 1 && followingIDs[0] == "" {
-		followingIDs = nil
+	// If the client supplies following_ids explicitly, use them. Otherwise
+	// fall back to fetching the caller's following list from user-service so
+	// the frontend doesn't need to do it manually.
+	var followingIDs []string
+	if raw := strings.TrimSpace(c.Query("following_ids")); raw != "" {
+		followingIDs = strings.Split(raw, ",")
+	} else {
+		callerID := middleware.CallerID(c)
+		fr, err := h.user.ListFollowing(c.Request.Context(), &userv1.ListFollowingRequest{
+			UserId: callerID,
+			Limit:  500,
+		})
+		if err == nil {
+			followingIDs = make([]string, 0, len(fr.Users)+1)
+			followingIDs = append(followingIDs, callerID) // include own posts
+			for _, u := range fr.Users {
+				followingIDs = append(followingIDs, u.Id)
+			}
+		}
 	}
 	resp, err := h.uc.GetFeed(c.Request.Context(), &postv1.GetFeedRequest{
 		FollowingIds: followingIDs,
@@ -189,5 +210,46 @@ func (h *PostHandler) DeleteComment(c *gin.Context) {
 		errResp(c, err)
 		return
 	}
+	c.Status(http.StatusNoContent)
+}
+
+func (h *PostHandler) SavePost(c *gin.Context) {
+	_, err := h.uc.SavePost(c.Request.Context(), &postv1.SavePostRequest{
+		PostId: c.Param("id"),
+		UserId: middleware.CallerID(c),
+	})
+	if err != nil {
+		errResp(c, err)
+		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
+func (h *PostHandler) UnsavePost(c *gin.Context) {
+	_, err := h.uc.UnsavePost(c.Request.Context(), &postv1.UnsavePostRequest{
+		PostId: c.Param("id"),
+		UserId: middleware.CallerID(c),
+	})
+	if err != nil {
+		errResp(c, err)
+		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
+func (h *PostHandler) GetSavedPosts(c *gin.Context) {
+	resp, err := h.uc.GetSavedPosts(c.Request.Context(), &postv1.GetSavedPostsRequest{
+		UserId: middleware.CallerID(c),
+		Limit:  intQuery(c, "limit", 20),
+		Offset: intQuery(c, "offset", 0),
+	})
+	if err != nil {
+		errResp(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"posts": resp.Posts, "next_cursor": nil})
+}
+
+func (h *PostHandler) ReportPost(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }

@@ -63,7 +63,8 @@ func main() {
 	prefUC := usecase.NewPreferenceUseCase(prefRepo)
 
 	// ── NATS Consumer ──────────────────────────────────────────────────────
-	consumer, err := messaging.NewNATSConsumer(nc, notifUC)
+	appURL := cfg.AppURL
+	consumer, err := messaging.NewNATSConsumer(nc, notifUC, emailSender, appURL)
 	must(err, "create nats consumer")
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

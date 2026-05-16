@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/bekesh/social/backend/post/internal/domain"
@@ -188,9 +189,14 @@ func (repo *PostRepo) ListByAuthors(ctx context.Context, authorIDs []uuid.UUID, 
 
 func (repo *PostRepo) Search(ctx context.Context, query string, limit, offset int) ([]*domain.Post, error) {
 	q := querier(ctx, repo.db)
-	stmt := `SELECT ` + postCols + ` FROM posts WHERE caption ILIKE '%' || $1 || '%' AND deleted_at IS NULL ORDER BY created_at DESC LIMIT $2 OFFSET $3`
+	// Match caption OR any tag (case-insensitive). Strip leading '#'.
+	tag := strings.ToLower(strings.TrimPrefix(strings.TrimSpace(query), "#"))
+	stmt := `SELECT ` + postCols + ` FROM posts
+	         WHERE deleted_at IS NULL
+	           AND (caption ILIKE '%' || $1 || '%' OR $2 = ANY(tags))
+	         ORDER BY created_at DESC LIMIT $3 OFFSET $4`
 	var rows []postRow
-	if err := sqlx.SelectContext(ctx, q, &rows, stmt, query, limit, offset); err != nil {
+	if err := sqlx.SelectContext(ctx, q, &rows, stmt, query, tag, limit, offset); err != nil {
 		return nil, fmt.Errorf("search posts: %w", err)
 	}
 	return rowsToDomain(rows)
@@ -218,6 +224,66 @@ func (repo *PostRepo) DecrementComments(ctx context.Context, postID uuid.UUID) e
 	q := querier(ctx, repo.db)
 	_, err := q.ExecContext(ctx, `UPDATE posts SET comments_count=GREATEST(0,comments_count-1) WHERE id=$1`, postID.String())
 	return err
+}
+
+// ── SaveRepo ───────────────────────────────────────────────────────────────
+
+type SaveRepo struct{ db *sqlx.DB }
+
+func NewSaveRepo(db *sqlx.DB) *SaveRepo { return &SaveRepo{db: db} }
+
+func (repo *SaveRepo) Save(ctx context.Context, postID, userID uuid.UUID) error {
+	q := querier(ctx, repo.db)
+	_, err := q.ExecContext(ctx,
+		`INSERT INTO saves (post_id, user_id) VALUES ($1, $2)`,
+		postID.String(), userID.String())
+	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
+			return domain.ErrAlreadySaved
+		}
+		return fmt.Errorf("save post: %w", err)
+	}
+	return nil
+}
+
+func (repo *SaveRepo) Unsave(ctx context.Context, postID, userID uuid.UUID) error {
+	q := querier(ctx, repo.db)
+	res, err := q.ExecContext(ctx,
+		`DELETE FROM saves WHERE post_id=$1 AND user_id=$2`,
+		postID.String(), userID.String())
+	if err != nil {
+		return fmt.Errorf("unsave post: %w", err)
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return domain.ErrNotSaved
+	}
+	return nil
+}
+
+func (repo *SaveRepo) IsSaved(ctx context.Context, postID, userID uuid.UUID) (bool, error) {
+	var exists bool
+	err := repo.db.QueryRowContext(ctx,
+		`SELECT EXISTS(SELECT 1 FROM saves WHERE post_id=$1 AND user_id=$2)`,
+		postID.String(), userID.String()).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("check saved: %w", err)
+	}
+	return exists, nil
+}
+
+func (repo *SaveRepo) ListSavedPosts(ctx context.Context, userID uuid.UUID, limit, offset int) ([]*domain.Post, error) {
+	stmt := `SELECT p.` + postCols + `
+	         FROM posts p
+	         JOIN saves s ON s.post_id = p.id
+	         WHERE s.user_id = $1 AND p.deleted_at IS NULL
+	         ORDER BY s.created_at DESC
+	         LIMIT $2 OFFSET $3`
+	var rows []postRow
+	if err := repo.db.SelectContext(ctx, &rows, stmt, userID.String(), limit, offset); err != nil {
+		return nil, fmt.Errorf("list saved posts: %w", err)
+	}
+	return rowsToDomain(rows)
 }
 
 func rowsToDomain(rows []postRow) ([]*domain.Post, error) {

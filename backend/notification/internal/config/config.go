@@ -12,6 +12,7 @@ type Config struct {
 	NATS     NATSConfig
 	GRPC     GRPCConfig
 	SMTP     SMTPConfig
+	AppURL   string
 }
 
 type PostgresConfig struct {
@@ -50,6 +51,7 @@ func Load() (*Config, error) {
 	viper.SetDefault("NOTIFICATION_GRPC_PORT", "50055")
 	viper.SetDefault("SMTP_HOST", "smtp.gmail.com")
 	viper.SetDefault("SMTP_PORT", "587")
+	viper.SetDefault("APP_URL", "http://localhost:3000")
 
 	cfg := &Config{}
 
@@ -74,6 +76,7 @@ func Load() (*Config, error) {
 	cfg.SMTP.Port = viper.GetString("SMTP_PORT")
 	cfg.SMTP.Username = viper.GetString("SMTP_USERNAME")
 	cfg.SMTP.Password = viper.GetString("SMTP_PASSWORD")
+	cfg.AppURL = viper.GetString("APP_URL")
 
 	return cfg, nil
 }

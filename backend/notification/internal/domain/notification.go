@@ -15,6 +15,7 @@ const (
 	NotificationTypeMessage   NotificationType = "message"
 	NotificationTypeStoryView NotificationType = "story_view"
 	NotificationTypeMention   NotificationType = "mention"
+	NotificationTypeWelcome   NotificationType = "welcome"
 )
 
 type Notification struct {

@@ -3,34 +3,44 @@ package messaging
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/nats-io/nats.go"
 )
 
 type NATSPublisher struct {
-	js     nats.JetStreamContext
-	stream string
+	js nats.JetStreamContext
 }
 
 func NewNATSPublisher(nc *nats.Conn, stream string) (*NATSPublisher, error) {
 	js, err := nc.JetStream()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("jetstream context: %w", err)
 	}
-	if _, err = js.AddStream(&nats.StreamConfig{
-		Name:     stream,
-		Subjects: []string{">"},
-	}); err != nil && err != nats.ErrStreamNameAlreadyInUse {
-		return nil, err
+
+	// Ensure stream exists (idempotent — same config as other services)
+	_, err = js.StreamInfo(stream)
+	if err != nil {
+		_, err = js.AddStream(&nats.StreamConfig{
+			Name:     stream,
+			Subjects: []string{"user.>", "post.>", "chat.>", "notification.>", "story.>"},
+			Storage:  nats.FileStorage,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("create stream %s: %w", stream, err)
+		}
 	}
-	return &NATSPublisher{js: js, stream: stream}, nil
+
+	return &NATSPublisher{js: js}, nil
 }
 
 func (p *NATSPublisher) Publish(_ context.Context, subject string, payload any) error {
 	data, err := json.Marshal(payload)
 	if err != nil {
-		return err
+		return fmt.Errorf("marshal payload for %s: %w", subject, err)
 	}
-	_, err = p.js.Publish(subject, data)
-	return err
+	if _, err = p.js.Publish(subject, data); err != nil {
+		return fmt.Errorf("nats publish %s: %w", subject, err)
+	}
+	return nil
 }

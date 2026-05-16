@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	userv1 "github.com/bekesh/social/gen/go/user/v1"
+	"github.com/bekesh/social/gateway/internal/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,7 +31,11 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		errResp(c, err)
 		return
 	}
-	c.JSON(http.StatusCreated, resp)
+	c.JSON(http.StatusCreated, gin.H{
+		"user":          resp.User,
+		"access_token":  resp.Tokens.GetAccessToken(),
+		"refresh_token": resp.Tokens.GetRefreshToken(),
+	})
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
@@ -49,7 +54,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		errResp(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, gin.H{
+		"user":          resp.User,
+		"access_token":  resp.Tokens.GetAccessToken(),
+		"refresh_token": resp.Tokens.GetRefreshToken(),
+	})
 }
 
 func (h *AuthHandler) Logout(c *gin.Context) {
@@ -81,7 +90,10 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 		errResp(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, gin.H{
+		"access_token":  resp.Tokens.GetAccessToken(),
+		"refresh_token": resp.Tokens.GetRefreshToken(),
+	})
 }
 
 func (h *AuthHandler) ForgotPassword(c *gin.Context) {
@@ -117,4 +129,54 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "password reset"})
+}
+
+func (h *AuthHandler) VerifyEmail(c *gin.Context) {
+	var req struct {
+		Token string `json:"token"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	_, err := h.uc.VerifyEmail(c.Request.Context(), &userv1.VerifyEmailRequest{Token: req.Token})
+	if err != nil {
+		errResp(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "email verified"})
+}
+
+func (h *AuthHandler) ResendVerification(c *gin.Context) {
+	var req struct {
+		Email string `json:"email"`
+	}
+	c.ShouldBindJSON(&req)
+	_, err := h.uc.ResendVerification(c.Request.Context(), &userv1.ResendVerificationRequest{Email: req.Email})
+	if err != nil {
+		errResp(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "verification email sent"})
+}
+
+func (h *AuthHandler) ChangePassword(c *gin.Context) {
+	var req struct {
+		CurrentPassword string `json:"current_password"`
+		NewPassword     string `json:"new_password"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	_, err := h.uc.ChangePassword(c.Request.Context(), &userv1.ChangePasswordRequest{
+		UserId:      middleware.CallerID(c),
+		OldPassword: req.CurrentPassword,
+		NewPassword: req.NewPassword,
+	})
+	if err != nil {
+		errResp(c, err)
+		return
+	}
+	c.Status(http.StatusNoContent)
 }

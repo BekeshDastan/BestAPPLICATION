@@ -33,6 +33,10 @@ const (
 	PostService_AddComment_FullMethodName    = "/post.v1.PostService/AddComment"
 	PostService_DeleteComment_FullMethodName = "/post.v1.PostService/DeleteComment"
 	PostService_ListComments_FullMethodName  = "/post.v1.PostService/ListComments"
+	PostService_SavePost_FullMethodName      = "/post.v1.PostService/SavePost"
+	PostService_UnsavePost_FullMethodName    = "/post.v1.PostService/UnsavePost"
+	PostService_GetSavedPosts_FullMethodName = "/post.v1.PostService/GetSavedPosts"
+	PostService_IsSaved_FullMethodName       = "/post.v1.PostService/IsSaved"
 )
 
 // PostServiceClient is the client API for PostService service.
@@ -58,6 +62,11 @@ type PostServiceClient interface {
 	AddComment(ctx context.Context, in *AddCommentRequest, opts ...grpc.CallOption) (*AddCommentResponse, error)
 	DeleteComment(ctx context.Context, in *DeleteCommentRequest, opts ...grpc.CallOption) (*DeleteCommentResponse, error)
 	ListComments(ctx context.Context, in *ListCommentsRequest, opts ...grpc.CallOption) (*ListCommentsResponse, error)
+	// Saves
+	SavePost(ctx context.Context, in *SavePostRequest, opts ...grpc.CallOption) (*SavePostResponse, error)
+	UnsavePost(ctx context.Context, in *UnsavePostRequest, opts ...grpc.CallOption) (*UnsavePostResponse, error)
+	GetSavedPosts(ctx context.Context, in *GetSavedPostsRequest, opts ...grpc.CallOption) (*GetSavedPostsResponse, error)
+	IsSaved(ctx context.Context, in *IsSavedRequest, opts ...grpc.CallOption) (*IsSavedResponse, error)
 }
 
 type postServiceClient struct {
@@ -208,6 +217,46 @@ func (c *postServiceClient) ListComments(ctx context.Context, in *ListCommentsRe
 	return out, nil
 }
 
+func (c *postServiceClient) SavePost(ctx context.Context, in *SavePostRequest, opts ...grpc.CallOption) (*SavePostResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SavePostResponse)
+	err := c.cc.Invoke(ctx, PostService_SavePost_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postServiceClient) UnsavePost(ctx context.Context, in *UnsavePostRequest, opts ...grpc.CallOption) (*UnsavePostResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnsavePostResponse)
+	err := c.cc.Invoke(ctx, PostService_UnsavePost_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postServiceClient) GetSavedPosts(ctx context.Context, in *GetSavedPostsRequest, opts ...grpc.CallOption) (*GetSavedPostsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSavedPostsResponse)
+	err := c.cc.Invoke(ctx, PostService_GetSavedPosts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postServiceClient) IsSaved(ctx context.Context, in *IsSavedRequest, opts ...grpc.CallOption) (*IsSavedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IsSavedResponse)
+	err := c.cc.Invoke(ctx, PostService_IsSaved_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PostServiceServer is the server API for PostService service.
 // All implementations must embed UnimplementedPostServiceServer
 // for forward compatibility
@@ -231,6 +280,11 @@ type PostServiceServer interface {
 	AddComment(context.Context, *AddCommentRequest) (*AddCommentResponse, error)
 	DeleteComment(context.Context, *DeleteCommentRequest) (*DeleteCommentResponse, error)
 	ListComments(context.Context, *ListCommentsRequest) (*ListCommentsResponse, error)
+	// Saves
+	SavePost(context.Context, *SavePostRequest) (*SavePostResponse, error)
+	UnsavePost(context.Context, *UnsavePostRequest) (*UnsavePostResponse, error)
+	GetSavedPosts(context.Context, *GetSavedPostsRequest) (*GetSavedPostsResponse, error)
+	IsSaved(context.Context, *IsSavedRequest) (*IsSavedResponse, error)
 	mustEmbedUnimplementedPostServiceServer()
 }
 
@@ -279,6 +333,18 @@ func (UnimplementedPostServiceServer) DeleteComment(context.Context, *DeleteComm
 }
 func (UnimplementedPostServiceServer) ListComments(context.Context, *ListCommentsRequest) (*ListCommentsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListComments not implemented")
+}
+func (UnimplementedPostServiceServer) SavePost(context.Context, *SavePostRequest) (*SavePostResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SavePost not implemented")
+}
+func (UnimplementedPostServiceServer) UnsavePost(context.Context, *UnsavePostRequest) (*UnsavePostResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnsavePost not implemented")
+}
+func (UnimplementedPostServiceServer) GetSavedPosts(context.Context, *GetSavedPostsRequest) (*GetSavedPostsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSavedPosts not implemented")
+}
+func (UnimplementedPostServiceServer) IsSaved(context.Context, *IsSavedRequest) (*IsSavedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsSaved not implemented")
 }
 func (UnimplementedPostServiceServer) mustEmbedUnimplementedPostServiceServer() {}
 
@@ -545,6 +611,78 @@ func _PostService_ListComments_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PostService_SavePost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SavePostRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).SavePost(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostService_SavePost_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).SavePost(ctx, req.(*SavePostRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostService_UnsavePost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnsavePostRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).UnsavePost(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostService_UnsavePost_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).UnsavePost(ctx, req.(*UnsavePostRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostService_GetSavedPosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSavedPostsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).GetSavedPosts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostService_GetSavedPosts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).GetSavedPosts(ctx, req.(*GetSavedPostsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostService_IsSaved_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IsSavedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).IsSaved(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostService_IsSaved_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).IsSaved(ctx, req.(*IsSavedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PostService_ServiceDesc is the grpc.ServiceDesc for PostService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -607,6 +745,22 @@ var PostService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListComments",
 			Handler:    _PostService_ListComments_Handler,
+		},
+		{
+			MethodName: "SavePost",
+			Handler:    _PostService_SavePost_Handler,
+		},
+		{
+			MethodName: "UnsavePost",
+			Handler:    _PostService_UnsavePost_Handler,
+		},
+		{
+			MethodName: "GetSavedPosts",
+			Handler:    _PostService_GetSavedPosts_Handler,
+		},
+		{
+			MethodName: "IsSaved",
+			Handler:    _PostService_IsSaved_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

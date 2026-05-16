@@ -151,6 +151,8 @@ func (uc *StoryUseCase) MarkStoryViewed(ctx context.Context, storyID, viewerID u
 		"story_id":  storyID.String(),
 		"viewer_id": viewerID.String(),
 		"owner_id":  s.UserID.String(),
+		"user_id":   s.UserID.String(),  // notification recipient (story owner)
+		"actor_id":  viewerID.String(),  // who viewed
 	})
 
 	return nil
