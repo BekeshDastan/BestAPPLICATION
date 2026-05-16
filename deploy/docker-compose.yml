@@ -1,4 +1,7 @@
 services:
+
+  # ── Infrastructure ─────────────────────────────────────────────────────────
+
   postgres:
     image: postgres:16-alpine
     environment:
@@ -11,7 +14,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U social"]
+      test: ["CMD-SHELL", "pg_isready -U social -d postgres"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -60,6 +63,170 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
+
+  # ── Backend services ───────────────────────────────────────────────────────
+
+  user:
+    build:
+      context: ..
+      dockerfile: backend/user/Dockerfile
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: social
+      POSTGRES_PASSWORD: social
+      POSTGRES_SSLMODE: disable
+      REDIS_ADDR: redis:6379
+      NATS_URL: nats://nats:4222
+      NATS_STREAM: SOCIAL
+      USER_GRPC_PORT: 50051
+      JWT_PRIVATE_KEY_PATH: /app/keys/private.pem
+      JWT_PUBLIC_KEY_PATH: /app/keys/public.pem
+    volumes:
+      - ../keys:/app/keys:ro
+    ports:
+      - "50051:50051"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    restart: unless-stopped
+
+  post:
+    build:
+      context: ..
+      dockerfile: backend/post/Dockerfile
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: social
+      POSTGRES_PASSWORD: social
+      POSTGRES_SSLMODE: disable
+      REDIS_ADDR: redis:6379
+      NATS_URL: nats://nats:4222
+      NATS_STREAM: SOCIAL
+      POST_GRPC_PORT: 50052
+    ports:
+      - "50052:50052"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    restart: unless-stopped
+
+  chat:
+    build:
+      context: ..
+      dockerfile: backend/chat/Dockerfile
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: social
+      POSTGRES_PASSWORD: social
+      POSTGRES_SSLMODE: disable
+      REDIS_ADDR: redis:6379
+      NATS_URL: nats://nats:4222
+      NATS_STREAM: SOCIAL
+      CHAT_GRPC_PORT: 50053
+    ports:
+      - "50053:50053"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    restart: unless-stopped
+
+  story:
+    build:
+      context: ..
+      dockerfile: backend/story/Dockerfile
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: social
+      POSTGRES_PASSWORD: social
+      POSTGRES_SSLMODE: disable
+      REDIS_ADDR: redis:6379
+      NATS_URL: nats://nats:4222
+      NATS_STREAM: SOCIAL
+      STORY_GRPC_PORT: 50054
+    ports:
+      - "50054:50054"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    restart: unless-stopped
+
+  notification:
+    build:
+      context: ..
+      dockerfile: backend/notification/Dockerfile
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: social
+      POSTGRES_PASSWORD: social
+      POSTGRES_SSLMODE: disable
+      REDIS_ADDR: redis:6379
+      NATS_URL: nats://nats:4222
+      NATS_STREAM: SOCIAL
+      NOTIFICATION_GRPC_PORT: 50055
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      SMTP_USERNAME: ""
+      SMTP_PASSWORD: ""
+    ports:
+      - "50055:50055"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: ..
+      dockerfile: gateway/Dockerfile
+    environment:
+      HTTP_PORT: 8080
+      USER_GRPC_ADDR: user:50051
+      POST_GRPC_ADDR: post:50052
+      CHAT_GRPC_ADDR: chat:50053
+      STORY_GRPC_ADDR: story:50054
+    ports:
+      - "8080:8080"
+    depends_on:
+      - user
+      - post
+      - chat
+      - story
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - gateway
+    restart: unless-stopped
 
 volumes:
   pg_data:

@@ -3,6 +3,7 @@ package messaging
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/nats-io/nats.go"
 )
@@ -17,11 +18,16 @@ func NewNATSPublisher(nc *nats.Conn, stream string) (*NATSPublisher, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, err = js.AddStream(&nats.StreamConfig{
-		Name:     stream,
-		Subjects: []string{">"},
-	}); err != nil && err != nats.ErrStreamNameAlreadyInUse {
-		return nil, err
+	_, err = js.StreamInfo(stream)
+	if err != nil {
+		_, err = js.AddStream(&nats.StreamConfig{
+			Name:     stream,
+			Subjects: []string{"user.>", "post.>", "chat.>", "notification.>", "story.>"},
+			Storage:  nats.FileStorage,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("create stream %s: %w", stream, err)
+		}
 	}
 	return &NATSPublisher{js: js, stream: stream}, nil
 }
