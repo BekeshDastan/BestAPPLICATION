@@ -58,6 +58,7 @@ func (c *NATSConsumer) Start(ctx context.Context) {
 	}
 
 	for _, s := range subjects {
+		s := s // capture loop variable for closure
 		sub, err := c.js.Subscribe(s.subject, func(msg *nats.Msg) {
 			s.handler(ctx, msg)
 			_ = msg.Ack()
@@ -170,7 +171,7 @@ func (c *NATSConsumer) handleUserRegistered(ctx context.Context, msg *nats.Msg) 
 	})
 
 	if p.Email != "" && p.VerificationToken != "" {
-		link := fmt.Sprintf("%s/verify-email?token=%s&email=%s", c.appURL, p.VerificationToken, url.QueryEscape(p.Email))
+		link := fmt.Sprintf("%s/verify-email?token=%s&email=%s", c.appURL, url.QueryEscape(p.VerificationToken), url.QueryEscape(p.Email))
 		body := fmt.Sprintf(`<h2>Welcome, %s!</h2><p>Please verify your email:</p><p><a href="%s">Verify Email</a></p><p>Link: %s</p>`, p.Username, link, link)
 		c.sendEmail(ctx, p.Email, "Verify your Social account", body)
 	}
@@ -181,7 +182,7 @@ func (c *NATSConsumer) handlePasswordResetRequested(ctx context.Context, msg *na
 	if p.Email == "" || p.Token == "" {
 		return
 	}
-	link := fmt.Sprintf("%s/reset-password?token=%s", c.appURL, p.Token)
+	link := fmt.Sprintf("%s/reset-password?token=%s", c.appURL, url.QueryEscape(p.Token))
 	body := fmt.Sprintf(`<h2>Password Reset</h2><p>Click the link below to reset your password:</p><p><a href="%s">Reset Password</a></p><p>Link: %s</p><p>This link expires in 1 hour.</p>`, link, link)
 	c.sendEmail(ctx, p.Email, "Reset your Social password", body)
 }

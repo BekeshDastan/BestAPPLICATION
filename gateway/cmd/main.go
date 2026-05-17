@@ -33,8 +33,8 @@ func main() {
 
 	hub     := handler.NewHub()
 	authH   := handler.NewAuthHandler(clients.User)
-	userH   := handler.NewUserHandler(clients.User)
 	postH   := handler.NewPostHandler(clients.Post, clients.User)
+	userH   := handler.NewUserHandler(clients.User, clients.Post)
 	chatH   := handler.NewChatHandler(clients.Chat, clients.User, hub)
 	storyH  := handler.NewStoryHandler(clients.Story, clients.User)
 	notifH  := handler.NewNotificationHandler(clients.Notification)
