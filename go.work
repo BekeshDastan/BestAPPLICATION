@@ -2,7 +2,10 @@ go 1.25.0
 
 use (
 	./backend/chat
+	./backend/notification
 	./backend/post
+	./backend/story
 	./backend/user
+	./gateway
 	./gen/go
 )

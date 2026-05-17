@@ -39,6 +39,13 @@ type CommentRepository interface {
 	SoftDelete(ctx context.Context, id uuid.UUID) error
 }
 
+type SaveRepository interface {
+	Save(ctx context.Context, postID, userID uuid.UUID) error
+	Unsave(ctx context.Context, postID, userID uuid.UUID) error
+	IsSaved(ctx context.Context, postID, userID uuid.UUID) (bool, error)
+	ListSavedPosts(ctx context.Context, userID uuid.UUID, limit, offset int) ([]*Post, error)
+}
+
 type PostCache interface {
 	GetPost(ctx context.Context, id uuid.UUID) (*Post, error)
 	SetPost(ctx context.Context, p *Post, ttl time.Duration) error

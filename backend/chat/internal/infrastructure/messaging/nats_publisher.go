@@ -21,7 +21,7 @@ func NewNATSPublisher(nc *nats.Conn, stream string) (*NATSPublisher, error) {
 	if err != nil {
 		_, err = js.AddStream(&nats.StreamConfig{
 			Name:     stream,
-			Subjects: []string{">"},
+			Subjects: []string{"user.>", "post.>", "chat.>", "notification.>", "story.>"},
 			Storage:  nats.FileStorage,
 		})
 		if err != nil {

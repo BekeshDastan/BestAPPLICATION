@@ -14,4 +14,6 @@ var (
 	ErrTooManyMedia    = errors.New("post can have at most 10 media items")
 	ErrCommentEmpty    = errors.New("comment body cannot be empty")
 	ErrCommentTooLong  = errors.New("comment too long: max 1000 characters")
+	ErrAlreadySaved    = errors.New("post already saved")
+	ErrNotSaved        = errors.New("post not saved")
 )
