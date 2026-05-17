@@ -1,0 +1,364 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "annotations": { "list": [] },
+  "description": "Social App — Service Monitoring",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100, "title": "Service Status", "type": "row" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {
+        "color": { "mode": "thresholds" },
+        "thresholds": { "mode": "absolute", "steps": [
+          { "color": "red", "value": null },
+          { "color": "green", "value": 1 }
+        ]},
+        "mappings": [
+          { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+        ],
+        "unit": "short"
+      }},
+      "gridPos": { "h": 4, "w": 3, "x": 0, "y": 1 },
+      "id": 1, "title": "gateway",
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value", "colorMode": "background", "graphMode": "none", "justifyMode": "center", "text": { "valueSize": 36 } },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "up{job=\"social-gateway\"}", "instant": true, "refId": "A" }],
+      "type": "stat" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {
+        "color": { "mode": "thresholds" },
+        "thresholds": { "mode": "absolute", "steps": [
+          { "color": "red", "value": null },
+          { "color": "green", "value": 1 }
+        ]},
+        "mappings": [
+          { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+        ],
+        "unit": "short"
+      }},
+      "gridPos": { "h": 4, "w": 3, "x": 3, "y": 1 },
+      "id": 2, "title": "user",
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value", "colorMode": "background", "graphMode": "none", "justifyMode": "center", "text": { "valueSize": 36 } },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "up{job=\"social-user\"}", "instant": true, "refId": "A" }],
+      "type": "stat" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {
+        "color": { "mode": "thresholds" },
+        "thresholds": { "mode": "absolute", "steps": [
+          { "color": "red", "value": null },
+          { "color": "green", "value": 1 }
+        ]},
+        "mappings": [
+          { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+        ],
+        "unit": "short"
+      }},
+      "gridPos": { "h": 4, "w": 3, "x": 6, "y": 1 },
+      "id": 3, "title": "post",
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value", "colorMode": "background", "graphMode": "none", "justifyMode": "center", "text": { "valueSize": 36 } },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "up{job=\"social-post\"}", "instant": true, "refId": "A" }],
+      "type": "stat" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {
+        "color": { "mode": "thresholds" },
+        "thresholds": { "mode": "absolute", "steps": [
+          { "color": "red", "value": null },
+          { "color": "green", "value": 1 }
+        ]},
+        "mappings": [
+          { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+        ],
+        "unit": "short"
+      }},
+      "gridPos": { "h": 4, "w": 3, "x": 9, "y": 1 },
+      "id": 4, "title": "chat",
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value", "colorMode": "background", "graphMode": "none", "justifyMode": "center", "text": { "valueSize": 36 } },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "up{job=\"social-chat\"}", "instant": true, "refId": "A" }],
+      "type": "stat" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {
+        "color": { "mode": "thresholds" },
+        "thresholds": { "mode": "absolute", "steps": [
+          { "color": "red", "value": null },
+          { "color": "green", "value": 1 }
+        ]},
+        "mappings": [
+          { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+        ],
+        "unit": "short"
+      }},
+      "gridPos": { "h": 4, "w": 3, "x": 12, "y": 1 },
+      "id": 5, "title": "story",
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value", "colorMode": "background", "graphMode": "none", "justifyMode": "center", "text": { "valueSize": 36 } },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "up{job=\"social-story\"}", "instant": true, "refId": "A" }],
+      "type": "stat" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {
+        "color": { "mode": "thresholds" },
+        "thresholds": { "mode": "absolute", "steps": [
+          { "color": "red", "value": null },
+          { "color": "green", "value": 1 }
+        ]},
+        "mappings": [
+          { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+        ],
+        "unit": "short"
+      }},
+      "gridPos": { "h": 4, "w": 3, "x": 15, "y": 1 },
+      "id": 6, "title": "notification",
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value", "colorMode": "background", "graphMode": "none", "justifyMode": "center", "text": { "valueSize": 36 } },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "up{job=\"social-notification\"}", "instant": true, "refId": "A" }],
+      "type": "stat" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {
+        "color": { "mode": "thresholds" },
+        "thresholds": { "mode": "absolute", "steps": [
+          { "color": "red", "value": null },
+          { "color": "green", "value": 1 },
+          { "color": "green", "value": 5 }
+        ]},
+        "unit": "short"
+      }},
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+      "id": 7, "title": "Services Online",
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value_and_name", "colorMode": "background", "graphMode": "none", "justifyMode": "center", "text": { "valueSize": 48 } },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "count(up{job=~\"social-.*\"} == 1)", "instant": true, "legendFormat": "Online", "refId": "A" }],
+      "type": "stat" },
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 101, "title": "Overview", "type": "row" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {
+        "color": { "mode": "thresholds" },
+        "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
+        "unit": "reqps", "decimals": 3
+      }},
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 6 },
+      "id": 8, "title": "Total RPS",
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value_and_name", "colorMode": "background", "graphMode": "area", "justifyMode": "auto" },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(rate(http_requests_total{job=\"social-gateway\"}[2m]))", "legendFormat": "req/s", "refId": "A" }],
+      "type": "stat" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {
+        "color": { "mode": "thresholds" },
+        "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] },
+        "unit": "bytes"
+      }},
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 6 },
+      "id": 9, "title": "Total Memory",
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value_and_name", "colorMode": "background", "graphMode": "area", "justifyMode": "auto" },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(container_memory_usage_bytes)", "legendFormat": "Total", "refId": "A" }],
+      "type": "stat" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {
+        "color": { "mode": "thresholds" },
+        "thresholds": { "mode": "absolute", "steps": [
+          { "color": "green", "value": null },
+          { "color": "yellow", "value": 50 },
+          { "color": "red", "value": 80 }
+        ]},
+        "unit": "percent"
+      }},
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 6 },
+      "id": 10, "title": "Total CPU",
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value_and_name", "colorMode": "background", "graphMode": "area", "justifyMode": "auto" },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(rate(container_cpu_usage_seconds_total[2m])) * 100", "legendFormat": "CPU %", "refId": "A" }],
+      "type": "stat" },
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 10 },
+      "id": 102, "title": "HTTP Traffic (Gateway)", "type": "row" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 11 },
+      "id": 12, "title": "HTTP Request Rate (Total)",
+      "options": { "legend": { "calcs": ["mean","max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(rate(http_requests_total{job=\"social-gateway\"}[2m]))", "legendFormat": "Total RPS", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by(method) (rate(http_requests_total{job=\"social-gateway\"}[2m]))", "legendFormat": "{{ method }}", "refId": "B" }
+      ],
+      "type": "timeseries" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 11 },
+      "id": 13, "title": "HTTP Errors (4xx / 5xx)",
+      "options": { "legend": { "calcs": ["mean","max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by(status) (rate(http_requests_total{job=\"social-gateway\",status=~\"4..|5..\"}[2m]))", "legendFormat": "{{ status }}", "refId": "A" }
+      ],
+      "type": "timeseries" },
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 19 },
+      "id": 103, "title": "gRPC Metrics", "type": "row" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "id": 14, "title": "gRPC Request Rate per Service",
+      "options": { "legend": { "calcs": ["mean","max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by(job) (rate(grpc_server_handled_total{job=~\"social-.*\"}[2m]))", "legendFormat": "{{ job }}", "refId": "A" }
+      ],
+      "type": "timeseries" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "id": 15, "title": "gRPC Errors per Service",
+      "options": { "legend": { "calcs": ["mean","max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by(job, grpc_code) (rate(grpc_server_handled_total{job=~\"social-.*\",grpc_code!=\"OK\"}[2m]))", "legendFormat": "{{ job }} / {{ grpc_code }}", "refId": "A" }
+      ],
+      "type": "timeseries" },
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 28 },
+      "id": 104, "title": "Container Resources", "type": "row" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "percent" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 29 },
+      "id": 16, "title": "CPU Usage (Total — All Services)",
+      "options": { "legend": { "calcs": ["mean","max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(rate(container_cpu_usage_seconds_total[2m])) * 100", "legendFormat": "Total CPU %", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "rate(container_cpu_usage_seconds_total[2m]) * 100", "legendFormat": "{{ name }}", "refId": "B" }
+      ],
+      "type": "timeseries" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "bytes" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 29 },
+      "id": 17, "title": "Memory Usage (Total — All Services)",
+      "options": { "legend": { "calcs": ["mean","max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(container_memory_usage_bytes)", "legendFormat": "Total Memory", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "container_memory_usage_bytes", "legendFormat": "{{ name }}", "refId": "B" }
+      ],
+      "type": "timeseries" },
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 37 },
+      "id": 105, "title": "Container Restarts (last 1h)", "type": "row" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {
+        "color": { "mode": "thresholds" },
+        "thresholds": { "mode": "absolute", "steps": [
+          { "color": "green", "value": null },
+          { "color": "yellow", "value": 1 },
+          { "color": "red", "value": 3 }
+        ]},
+        "unit": "short"
+      }},
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 38 },
+      "id": 18, "title": "gateway",
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value", "colorMode": "background", "graphMode": "none", "justifyMode": "center", "text": { "valueSize": 36 } },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "changes(container_start_time_seconds{name=~\".+-gateway-.+\"}[1h])", "instant": true, "refId": "A" }],
+      "type": "stat" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {
+        "color": { "mode": "thresholds" },
+        "thresholds": { "mode": "absolute", "steps": [
+          { "color": "green", "value": null },
+          { "color": "yellow", "value": 1 },
+          { "color": "red", "value": 3 }
+        ]},
+        "unit": "short"
+      }},
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 38 },
+      "id": 19, "title": "user",
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value", "colorMode": "background", "graphMode": "none", "justifyMode": "center", "text": { "valueSize": 36 } },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "changes(container_start_time_seconds{name=~\".+-user-.+\"}[1h])", "instant": true, "refId": "A" }],
+      "type": "stat" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {
+        "color": { "mode": "thresholds" },
+        "thresholds": { "mode": "absolute", "steps": [
+          { "color": "green", "value": null },
+          { "color": "yellow", "value": 1 },
+          { "color": "red", "value": 3 }
+        ]},
+        "unit": "short"
+      }},
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 38 },
+      "id": 20, "title": "post",
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value", "colorMode": "background", "graphMode": "none", "justifyMode": "center", "text": { "valueSize": 36 } },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "changes(container_start_time_seconds{name=~\".+-post-.+\"}[1h])", "instant": true, "refId": "A" }],
+      "type": "stat" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {
+        "color": { "mode": "thresholds" },
+        "thresholds": { "mode": "absolute", "steps": [
+          { "color": "green", "value": null },
+          { "color": "yellow", "value": 1 },
+          { "color": "red", "value": 3 }
+        ]},
+        "unit": "short"
+      }},
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 38 },
+      "id": 21, "title": "chat",
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value", "colorMode": "background", "graphMode": "none", "justifyMode": "center", "text": { "valueSize": 36 } },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "changes(container_start_time_seconds{name=~\".+-chat-.+\"}[1h])", "instant": true, "refId": "A" }],
+      "type": "stat" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {
+        "color": { "mode": "thresholds" },
+        "thresholds": { "mode": "absolute", "steps": [
+          { "color": "green", "value": null },
+          { "color": "yellow", "value": 1 },
+          { "color": "red", "value": 3 }
+        ]},
+        "unit": "short"
+      }},
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 38 },
+      "id": 22, "title": "story",
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value", "colorMode": "background", "graphMode": "none", "justifyMode": "center", "text": { "valueSize": 36 } },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "changes(container_start_time_seconds{name=~\".+-story-.+\"}[1h])", "instant": true, "refId": "A" }],
+      "type": "stat" },
+
+    { "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {
+        "color": { "mode": "thresholds" },
+        "thresholds": { "mode": "absolute", "steps": [
+          { "color": "green", "value": null },
+          { "color": "yellow", "value": 1 },
+          { "color": "red", "value": 3 }
+        ]},
+        "unit": "short"
+      }},
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 38 },
+      "id": 23, "title": "notification",
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value", "colorMode": "background", "graphMode": "none", "justifyMode": "center", "text": { "valueSize": 36 } },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "changes(container_start_time_seconds{name=~\".+-notification-.+\"}[1h])", "instant": true, "refId": "A" }],
+      "type": "stat" }
+
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["social", "monitoring"],
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Social App — Services",
+  "uid": "social-main",
+  "version": 1
+}

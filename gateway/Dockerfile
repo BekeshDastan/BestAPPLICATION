@@ -16,6 +16,7 @@ RUN go work edit \
     cd /src && go build -o /app/gateway ./gateway/cmd
 
 FROM alpine:3.19
+RUN apk add --no-cache wget
 WORKDIR /app
 COPY --from=builder /app/gateway .
 EXPOSE 8080

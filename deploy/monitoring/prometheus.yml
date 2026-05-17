@@ -1,0 +1,50 @@
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Gateway — HTTP metrics
+  - job_name: 'social-gateway'
+    static_configs:
+      - targets: ['gateway:9090']
+        labels:
+          service: 'gateway'
+
+  # Backend gRPC services — metrics port = gRPC port + 1000
+  - job_name: 'social-user'
+    static_configs:
+      - targets: ['user:51051']
+        labels:
+          service: 'user'
+
+  - job_name: 'social-post'
+    static_configs:
+      - targets: ['post:51052']
+        labels:
+          service: 'post'
+
+  - job_name: 'social-chat'
+    static_configs:
+      - targets: ['chat:51053']
+        labels:
+          service: 'chat'
+
+  - job_name: 'social-story'
+    static_configs:
+      - targets: ['story:51054']
+        labels:
+          service: 'story'
+
+  - job_name: 'social-notification'
+    static_configs:
+      - targets: ['notification:51055']
+        labels:
+          service: 'notification'
+
+  # cAdvisor — container CPU / Memory / Restarts
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    metric_relabel_configs:
+      - source_labels: [container_label_com_docker_compose_service]
+        target_label: service

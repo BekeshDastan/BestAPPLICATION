@@ -70,7 +70,7 @@ export default function PostCreationModal({ onClose, onCreated }) {
       className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="card w-full max-w-lg overflow-hidden animate-fade-in">
+      <div className="card w-full max-w-lg flex flex-col animate-fade-in" style={{ maxHeight: '90vh' }}>
         {/* Header */}
         <div
           className="flex items-center justify-between px-5 py-4 border-b"
@@ -82,7 +82,7 @@ export default function PostCreationModal({ onClose, onCreated }) {
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
+        <div className="p-5 space-y-4 overflow-y-auto flex-1">
           {/* Media area */}
           {previews.length === 0 ? (
             <div

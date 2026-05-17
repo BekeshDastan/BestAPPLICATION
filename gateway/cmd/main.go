@@ -10,6 +10,7 @@ import (
 	"github.com/bekesh/social/gateway/internal/handler"
 	"github.com/bekesh/social/gateway/internal/middleware"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -33,11 +34,11 @@ func main() {
 
 	hub     := handler.NewHub()
 	authH   := handler.NewAuthHandler(clients.User)
-	userH   := handler.NewUserHandler(clients.User)
 	postH   := handler.NewPostHandler(clients.Post, clients.User)
+	userH   := handler.NewUserHandler(clients.User, clients.Post)
 	chatH   := handler.NewChatHandler(clients.Chat, clients.User, hub)
 	storyH  := handler.NewStoryHandler(clients.Story, clients.User)
-	notifH  := handler.NewNotificationHandler(clients.Notification)
+	notifH  := handler.NewNotificationHandler(clients.Notification, clients.User)
 	adminH  := handler.NewAdminHandler(clients.User, clients.Post, clients.Chat, clients.Story, clients.Notification)
 	mediaH  := handler.NewMediaHandler(
 		cfg.MinIO.Endpoint,
@@ -49,8 +50,19 @@ func main() {
 	)
 	wsH := handler.NewWsHandler(clients.User, hub)
 
+	go func() {
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promhttp.Handler())
+		mux.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
+		slog.Info("metrics server started", "addr", ":9090")
+		if err := http.ListenAndServe(":9090", mux); err != nil {
+			slog.Error("metrics server failed", "err", err)
+		}
+	}()
+
 	r := gin.New()
 	r.Use(gin.Recovery())
+	r.Use(middleware.Metrics())
 
 	// CORS — concrete origin from config (supports credentials).
 	allowedOrigin := cfg.HTTP.AllowedOrigin

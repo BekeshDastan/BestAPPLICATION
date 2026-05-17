@@ -6,14 +6,18 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"net/http"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/bekesh/social/backend/notification/internal/domain"
 	"github.com/bekesh/social/backend/notification/internal/usecase"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	notifv1 "github.com/bekesh/social/gen/go/notification/v1"
 	"github.com/google/uuid"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
@@ -268,13 +272,18 @@ func (h *NotificationHandler) SendEmail(ctx context.Context, req *notifv1.SendEm
 // ── Server ─────────────────────────────────────────────────────────────────
 
 func NewServer(h *NotificationHandler) *grpc.Server {
-	srv := grpc.NewServer()
+	srv := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(grpc_prometheus.UnaryServerInterceptor),
+		grpc.ChainStreamInterceptor(grpc_prometheus.StreamServerInterceptor),
+	)
 	notifv1.RegisterNotificationServiceServer(srv, h)
 	reflection.Register(srv)
+	grpc_prometheus.Register(srv)
 	return srv
 }
 
 func Run(port string, srv *grpc.Server) error {
+	startMetricsServer(port)
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
 	if err != nil {
 		return err
@@ -296,4 +305,20 @@ func Run(port string, srv *grpc.Server) error {
 	case err := <-errCh:
 		return err
 	}
+}
+
+func startMetricsServer(grpcPort string) {
+	portNum, _ := strconv.Atoi(grpcPort)
+	go func() {
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promhttp.Handler())
+		mux.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+		addr := fmt.Sprintf(":%d", portNum+1000)
+		slog.Info("metrics server started", "addr", addr)
+		if err := http.ListenAndServe(addr, mux); err != nil {
+			slog.Error("metrics server failed", "err", err)
+		}
+	}()
 }

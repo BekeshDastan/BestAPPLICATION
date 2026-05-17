@@ -6,13 +6,17 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"net/http"
 	"os/signal"
+	"strconv"
 	"syscall"
 
 	"github.com/bekesh/social/backend/post/internal/domain"
 	"github.com/bekesh/social/backend/post/internal/usecase"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	postv1 "github.com/bekesh/social/gen/go/post/v1"
 	"github.com/google/uuid"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
@@ -455,10 +459,16 @@ func Run(port string, srv *PostServer) error {
 	}
 
 	grpcSrv := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(recoveryInterceptor),
+		grpc.ChainUnaryInterceptor(
+			grpc_prometheus.UnaryServerInterceptor,
+			recoveryInterceptor,
+		),
+		grpc.ChainStreamInterceptor(grpc_prometheus.StreamServerInterceptor),
 	)
 	postv1.RegisterPostServiceServer(grpcSrv, srv)
 	reflection.Register(grpcSrv)
+	grpc_prometheus.Register(grpcSrv)
+	startMetricsServer(port)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -484,4 +494,20 @@ func recoveryInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo, 
 		}
 	}()
 	return handler(ctx, req)
+}
+
+func startMetricsServer(grpcPort string) {
+	portNum, _ := strconv.Atoi(grpcPort)
+	go func() {
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promhttp.Handler())
+		mux.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+		addr := fmt.Sprintf(":%d", portNum+1000)
+		slog.Info("metrics server started", "addr", addr)
+		if err := http.ListenAndServe(addr, mux); err != nil {
+			slog.Error("metrics server failed", "err", err)
+		}
+	}()
 }

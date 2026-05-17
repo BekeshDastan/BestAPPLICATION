@@ -30,7 +30,7 @@ export default function PostDetailModal({ post, onClose }) {
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
-        className="card w-full max-w-4xl max-h-[92vh] flex flex-col md:flex-row overflow-hidden animate-fade-in"
+        className="card w-full max-w-5xl max-h-[95vh] min-h-[60vh] flex flex-col md:flex-row overflow-hidden animate-fade-in"
         style={{ background: 'var(--surface)' }}
       >
         {/* ── Media side ──────────────────────────────────────────── */}

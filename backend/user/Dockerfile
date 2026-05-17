@@ -10,6 +10,7 @@ RUN go work edit -dropuse ./backend/chat -dropuse ./backend/notification -dropus
     go build -o /app/user ./backend/user/cmd
 
 FROM alpine:3.19
+RUN apk add --no-cache wget
 WORKDIR /app
 COPY --from=builder /app/user .
 COPY --from=builder /src/backend/user/migrations ./migrations

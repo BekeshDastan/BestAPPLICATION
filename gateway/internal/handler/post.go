@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
@@ -17,6 +18,85 @@ type PostHandler struct {
 
 func NewPostHandler(uc postv1.PostServiceClient, user userv1.UserServiceClient) *PostHandler {
 	return &PostHandler{uc: uc, user: user}
+}
+
+type authorInfo struct {
+	ID        string `json:"id"`
+	Username  string `json:"username,omitempty"`
+	FullName  string `json:"full_name,omitempty"`
+	AvatarURL string `json:"avatar_url,omitempty"`
+}
+
+type enrichedPost struct {
+	ID            string      `json:"id"`
+	AuthorID      string      `json:"author_id"`
+	Caption       string      `json:"caption,omitempty"`
+	MediaURLs     []string    `json:"media_urls"`
+	Tags          []string    `json:"tags"`
+	LikesCount    int32       `json:"likes_count"`
+	CommentsCount int32       `json:"comments_count"`
+	CreatedAt     int64       `json:"created_at"`
+	UpdatedAt     int64       `json:"updated_at"`
+	Author        *authorInfo `json:"author,omitempty"`
+}
+
+func (h *PostHandler) fetchUserMap(ctx context.Context, ids []string) map[string]*authorInfo {
+	seen := make(map[string]bool)
+	unique := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if id != "" && !seen[id] {
+			seen[id] = true
+			unique = append(unique, id)
+		}
+	}
+	type result struct {
+		id   string
+		info *authorInfo
+	}
+	ch := make(chan result, len(unique))
+	for _, id := range unique {
+		id := id
+		go func() {
+			r, err := h.user.GetProfile(ctx, &userv1.GetProfileRequest{UserId: id})
+			if err != nil || r.User == nil {
+				ch <- result{id, nil}
+				return
+			}
+			ch <- result{id, &authorInfo{
+				ID:        r.User.Id,
+				Username:  r.User.Username,
+				FullName:  r.User.FullName,
+				AvatarURL: r.User.AvatarUrl,
+			}}
+		}()
+	}
+	out := make(map[string]*authorInfo, len(unique))
+	for range unique {
+		r := <-ch
+		if r.info != nil {
+			out[r.id] = r.info
+		}
+	}
+	return out
+}
+
+func buildEnrichedPosts(posts []*postv1.PostProto, users map[string]*authorInfo) []enrichedPost {
+	out := make([]enrichedPost, len(posts))
+	for i, p := range posts {
+		out[i] = enrichedPost{
+			ID:            p.Id,
+			AuthorID:      p.AuthorId,
+			Caption:       p.Caption,
+			MediaURLs:     p.MediaUrls,
+			Tags:          p.Tags,
+			LikesCount:    p.LikesCount,
+			CommentsCount: p.CommentsCount,
+			CreatedAt:     p.CreatedAt,
+			UpdatedAt:     p.UpdatedAt,
+			Author:        users[p.AuthorId],
+		}
+	}
+	return out
 }
 
 func (h *PostHandler) Create(c *gin.Context) {
@@ -115,12 +195,18 @@ func (h *PostHandler) Feed(c *gin.Context) {
 		errResp(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+	authorIDs := make([]string, len(resp.Posts))
+	for i, p := range resp.Posts {
+		authorIDs[i] = p.AuthorId
+	}
+	users := h.fetchUserMap(c.Request.Context(), authorIDs)
+	c.JSON(http.StatusOK, gin.H{"posts": buildEnrichedPosts(resp.Posts, users)})
 }
 
 func (h *PostHandler) ListUserPosts(c *gin.Context) {
+	authorID := c.Param("id")
 	resp, err := h.uc.ListUserPosts(c.Request.Context(), &postv1.ListUserPostsRequest{
-		AuthorId: c.Param("id"),
+		AuthorId: authorID,
 		Limit:    intQuery(c, "limit", 20),
 		Offset:   intQuery(c, "offset", 0),
 	})
@@ -128,7 +214,8 @@ func (h *PostHandler) ListUserPosts(c *gin.Context) {
 		errResp(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+	users := h.fetchUserMap(c.Request.Context(), []string{authorID})
+	c.JSON(http.StatusOK, gin.H{"posts": buildEnrichedPosts(resp.Posts, users)})
 }
 
 func (h *PostHandler) Search(c *gin.Context) {
@@ -247,7 +334,12 @@ func (h *PostHandler) GetSavedPosts(c *gin.Context) {
 		errResp(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"posts": resp.Posts, "next_cursor": nil})
+	authorIDs := make([]string, len(resp.Posts))
+	for i, p := range resp.Posts {
+		authorIDs[i] = p.AuthorId
+	}
+	users := h.fetchUserMap(c.Request.Context(), authorIDs)
+	c.JSON(http.StatusOK, gin.H{"posts": buildEnrichedPosts(resp.Posts, users), "next_cursor": nil})
 }
 
 func (h *PostHandler) ReportPost(c *gin.Context) {
