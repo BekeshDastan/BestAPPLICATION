@@ -14,26 +14,44 @@ import (
 )
 
 type MediaHandler struct {
-	internal   *minio.Client // gateway → MinIO (internal docker hostname)
+	internal   *minio.Client // gateway → MinIO (internal docker hostname, for bucket setup)
+	public     *minio.Client // signs URLs with the public host so SigV4 matches what the browser sends
 	bucket     string
 	publicHost string
 	useSSL     bool
 }
 
 func NewMediaHandler(endpoint, accessKey, secretKey, bucket, publicHost string, useSSL bool) *MediaHandler {
-	opts := &minio.Options{
-		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
+	creds := credentials.NewStaticV4(accessKey, secretKey, "")
+
+	// Internal client — reachable from inside the docker network. Used for
+	// bucket-setup operations (create + policy).
+	internal, err := minio.New(endpoint, &minio.Options{
+		Creds:  creds,
 		Secure: useSSL,
 		// Force region so the SDK doesn't probe BucketLocation at presign time.
 		Region: "us-east-1",
-	}
-	internal, err := minio.New(endpoint, opts)
+	})
 	if err != nil {
 		slog.Error("minio internal client", "err", err)
 	}
 
+	// Public client — used ONLY for presigning. SigV4 includes the Host
+	// header, so the signed Host must match what the browser actually sends.
+	// Without this, a URL signed with `minio:9000` and replayed against
+	// `localhost:9000` yields SignatureDoesNotMatch (HTTP 403).
+	public, err := minio.New(publicHost, &minio.Options{
+		Creds:  creds,
+		Secure: useSSL,
+		Region: "us-east-1",
+	})
+	if err != nil {
+		slog.Error("minio public client", "err", err)
+	}
+
 	h := &MediaHandler{
 		internal:   internal,
+		public:     public,
 		bucket:     bucket,
 		publicHost: publicHost,
 		useSSL:     useSSL,
@@ -77,10 +95,10 @@ func (h *MediaHandler) ensureBucket() {
 }
 
 // GET /media/upload-url — returns a presigned PUT URL + public media URL.
-// We sign with the internal client (it can reach MinIO inside the docker
-// network) and then rewrite the Host so the browser hits the public address.
+// Signed with the public-host client so the Host header in the SigV4
+// canonical request matches what the browser will send.
 func (h *MediaHandler) UploadURL(c *gin.Context) {
-	if h.internal == nil {
+	if h.public == nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "media service unavailable"})
 		return
 	}
@@ -91,7 +109,7 @@ func (h *MediaHandler) UploadURL(c *gin.Context) {
 
 	objectName := fmt.Sprintf("%s/%s/%s", mediaType, uuid.New().String(), filename)
 
-	presignedURL, err := h.internal.PresignedPutObject(
+	presignedURL, err := h.public.PresignedPutObject(
 		c.Request.Context(),
 		h.bucket,
 		objectName,
@@ -105,14 +123,6 @@ func (h *MediaHandler) UploadURL(c *gin.Context) {
 		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate upload URL"})
 		return
-	}
-
-	// Rewrite host/scheme for the browser.
-	presignedURL.Host = h.publicHost
-	if h.useSSL {
-		presignedURL.Scheme = "https"
-	} else {
-		presignedURL.Scheme = "http"
 	}
 
 	scheme := "http"

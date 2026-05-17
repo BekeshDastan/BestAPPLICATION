@@ -63,19 +63,33 @@ func (h *AdminHandler) Stats(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 3*time.Second)
 	defer cancel()
 
-	var totalUsers, totalPosts int
+	var totalUsers, totalPosts, activeStories int
+	var userIDs []string
 
 	if u, err := h.user.SearchUsers(ctx, &userv1.SearchUsersRequest{Limit: 1000}); err == nil {
 		totalUsers = len(u.Users)
+		userIDs = make([]string, 0, len(u.Users))
+		for _, usr := range u.Users {
+			userIDs = append(userIDs, usr.Id)
+		}
 	}
 	if p, err := h.post.SearchPosts(ctx, &postv1.SearchPostsRequest{Limit: 1000}); err == nil {
 		totalPosts = len(p.Posts)
+	}
+	// Active stories: story service has no global Count RPC, so we union
+	// ListFollowingStories across every known user to enumerate live ones.
+	if len(userIDs) > 0 {
+		if s, err := h.story.ListFollowingStories(ctx, &storyv1.ListFollowingRequest{
+			FollowingUserIds: userIDs,
+		}); err == nil {
+			activeStories = len(s.Stories)
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"total_users":    totalUsers,
 		"total_posts":    totalPosts,
-		"active_stories": 0, // no global count RPC yet
+		"active_stories": activeStories,
 		"messages_today": 0, // no global count RPC yet
 		"user_growth":    "+0%",
 		"post_growth":    "+0%",
@@ -288,11 +302,16 @@ func (h *AdminHandler) SystemHealth(c *gin.Context) {
 		return "down"
 	}
 
+	// Use the zero UUID so per-service uuid.Parse() succeeds — we just want a
+	// round-trip ping, not a real query. A non-UUID like "ping" returns
+	// InvalidArgument and would be misreported as service-down.
+	const pingUUID = "00000000-0000-0000-0000-000000000000"
+
 	_, errUser := h.user.SearchUsers(ctx, &userv1.SearchUsersRequest{Limit: 1})
 	_, errPost := h.post.SearchPosts(ctx, &postv1.SearchPostsRequest{Limit: 1})
-	_, errChat := h.chat.ListConversations(ctx, &chatv1.ListConversationsRequest{UserId: "ping", Limit: 1})
-	_, errStory := h.story.ListUserStories(ctx, &storyv1.ListUserStoriesRequest{UserId: "ping", Limit: 1})
-	_, errNotif := h.notif.GetUnreadCount(ctx, &notifv1.GetUnreadCountRequest{UserId: "ping"})
+	_, errChat := h.chat.ListConversations(ctx, &chatv1.ListConversationsRequest{UserId: pingUUID, Limit: 1})
+	_, errStory := h.story.ListUserStories(ctx, &storyv1.ListUserStoriesRequest{UserId: pingUUID, Limit: 1})
+	_, errNotif := h.notif.GetUnreadCount(ctx, &notifv1.GetUnreadCountRequest{UserId: pingUUID})
 
 	c.JSON(http.StatusOK, gin.H{
 		"services": gin.H{
