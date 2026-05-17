@@ -233,9 +233,8 @@ func (uc *LikeUseCase) LikePost(ctx context.Context, postID, userID uuid.UUID) e
 	}
 	_ = uc.cache.InvalidatePost(ctx, postID)
 	_ = uc.publisher.Publish(ctx, domain.EventPostLiked, map[string]string{
-		"post_id":  postID.String(),
-		"user_id":  p.AuthorID.String(), // notification recipient (post owner)
-		"actor_id": userID.String(),     // who liked
+		"post_id": postID.String(),
+		"user_id": userID.String(),
 	})
 	return nil
 }
@@ -333,8 +332,6 @@ func (uc *CommentUseCase) AddComment(ctx context.Context, postID, authorID uuid.
 	_ = uc.publisher.Publish(ctx, domain.EventPostCommented, map[string]string{
 		"post_id":    postID.String(),
 		"comment_id": c.ID.String(),
-		"user_id":    p.AuthorID.String(), // notification recipient (post owner)
-		"actor_id":   authorID.String(),   // who commented
 		"author_id":  authorID.String(),
 	})
 	return c, nil
@@ -372,46 +369,4 @@ func (uc *CommentUseCase) ListComments(ctx context.Context, postID uuid.UUID, li
 		}
 	}
 	return out, nil
-}
-
-// ── SaveUseCase ────────────────────────────────────────────────────────────
-
-type SaveUseCase struct {
-	posts domain.PostRepository
-	saves domain.SaveRepository
-}
-
-func NewSaveUseCase(posts domain.PostRepository, saves domain.SaveRepository) *SaveUseCase {
-	return &SaveUseCase{posts: posts, saves: saves}
-}
-
-func (uc *SaveUseCase) SavePost(ctx context.Context, postID, userID uuid.UUID) error {
-	p, err := uc.posts.GetByID(ctx, postID)
-	if err != nil {
-		return err
-	}
-	if p.IsDeleted() {
-		return domain.ErrPostNotFound
-	}
-	already, err := uc.saves.IsSaved(ctx, postID, userID)
-	if err != nil {
-		return fmt.Errorf("check saved: %w", err)
-	}
-	if already {
-		return domain.ErrAlreadySaved
-	}
-	return uc.saves.Save(ctx, postID, userID)
-}
-
-func (uc *SaveUseCase) UnsavePost(ctx context.Context, postID, userID uuid.UUID) error {
-	return uc.saves.Unsave(ctx, postID, userID)
-}
-
-func (uc *SaveUseCase) GetSavedPosts(ctx context.Context, userID uuid.UUID, limit, offset int) ([]*domain.Post, error) {
-	limit, offset = clamp(limit, offset)
-	return uc.saves.ListSavedPosts(ctx, userID, limit, offset)
-}
-
-func (uc *SaveUseCase) IsSaved(ctx context.Context, postID, userID uuid.UUID) (bool, error) {
-	return uc.saves.IsSaved(ctx, postID, userID)
 }

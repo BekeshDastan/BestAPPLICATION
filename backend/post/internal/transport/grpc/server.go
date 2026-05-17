@@ -33,10 +33,6 @@ func domainErr(err error) error {
 		return status.Error(codes.NotFound, err.Error())
 	case errors.Is(err, domain.ErrForbidden):
 		return status.Error(codes.PermissionDenied, err.Error())
-	case errors.Is(err, domain.ErrAlreadySaved):
-		return status.Error(codes.AlreadyExists, err.Error())
-	case errors.Is(err, domain.ErrNotSaved):
-		return status.Error(codes.NotFound, err.Error())
 	case errors.Is(err, domain.ErrCaptionTooLong), errors.Is(err, domain.ErrEmptyMedia),
 		errors.Is(err, domain.ErrTooManyMedia), errors.Is(err, domain.ErrCommentEmpty),
 		errors.Is(err, domain.ErrCommentTooLong):
@@ -306,70 +302,6 @@ func (h *CommentHandler) ListComments(ctx context.Context, req *postv1.ListComme
 	return &postv1.ListCommentsResponse{Comments: out}, nil
 }
 
-// ── SaveHandler ────────────────────────────────────────────────────────────
-
-type SaveHandler struct{ uc *usecase.SaveUseCase }
-
-func NewSaveHandler(uc *usecase.SaveUseCase) *SaveHandler { return &SaveHandler{uc: uc} }
-
-func (h *SaveHandler) SavePost(ctx context.Context, req *postv1.SavePostRequest) (*postv1.SavePostResponse, error) {
-	postID, err := uuid.Parse(req.PostId)
-	if err != nil {
-		return nil, invalidArg("invalid post_id")
-	}
-	userID, err := uuid.Parse(req.UserId)
-	if err != nil {
-		return nil, invalidArg("invalid user_id")
-	}
-	if err = h.uc.SavePost(ctx, postID, userID); err != nil {
-		return nil, domainErr(err)
-	}
-	return &postv1.SavePostResponse{}, nil
-}
-
-func (h *SaveHandler) UnsavePost(ctx context.Context, req *postv1.UnsavePostRequest) (*postv1.UnsavePostResponse, error) {
-	postID, err := uuid.Parse(req.PostId)
-	if err != nil {
-		return nil, invalidArg("invalid post_id")
-	}
-	userID, err := uuid.Parse(req.UserId)
-	if err != nil {
-		return nil, invalidArg("invalid user_id")
-	}
-	if err = h.uc.UnsavePost(ctx, postID, userID); err != nil {
-		return nil, domainErr(err)
-	}
-	return &postv1.UnsavePostResponse{}, nil
-}
-
-func (h *SaveHandler) GetSavedPosts(ctx context.Context, req *postv1.GetSavedPostsRequest) (*postv1.GetSavedPostsResponse, error) {
-	userID, err := uuid.Parse(req.UserId)
-	if err != nil {
-		return nil, invalidArg("invalid user_id")
-	}
-	posts, err := h.uc.GetSavedPosts(ctx, userID, int(req.Limit), int(req.Offset))
-	if err != nil {
-		return nil, domainErr(err)
-	}
-	return &postv1.GetSavedPostsResponse{Posts: toProtoPosts(posts)}, nil
-}
-
-func (h *SaveHandler) IsSaved(ctx context.Context, req *postv1.IsSavedRequest) (*postv1.IsSavedResponse, error) {
-	postID, err := uuid.Parse(req.PostId)
-	if err != nil {
-		return nil, invalidArg("invalid post_id")
-	}
-	userID, err := uuid.Parse(req.UserId)
-	if err != nil {
-		return nil, invalidArg("invalid user_id")
-	}
-	ok, err := h.uc.IsSaved(ctx, postID, userID)
-	if err != nil {
-		return nil, domainErr(err)
-	}
-	return &postv1.IsSavedResponse{IsSaved: ok}, nil
-}
-
 // ── PostServer ─────────────────────────────────────────────────────────────
 
 type PostServer struct {
@@ -377,11 +309,10 @@ type PostServer struct {
 	post    *PostHandler
 	like    *LikeHandler
 	comment *CommentHandler
-	save    *SaveHandler
 }
 
-func NewPostServer(post *PostHandler, like *LikeHandler, comment *CommentHandler, save *SaveHandler) *PostServer {
-	return &PostServer{post: post, like: like, comment: comment, save: save}
+func NewPostServer(post *PostHandler, like *LikeHandler, comment *CommentHandler) *PostServer {
+	return &PostServer{post: post, like: like, comment: comment}
 }
 
 // Post delegation
@@ -430,20 +361,6 @@ func (s *PostServer) DeleteComment(ctx context.Context, r *postv1.DeleteCommentR
 }
 func (s *PostServer) ListComments(ctx context.Context, r *postv1.ListCommentsRequest) (*postv1.ListCommentsResponse, error) {
 	return s.comment.ListComments(ctx, r)
-}
-
-// Save delegation
-func (s *PostServer) SavePost(ctx context.Context, r *postv1.SavePostRequest) (*postv1.SavePostResponse, error) {
-	return s.save.SavePost(ctx, r)
-}
-func (s *PostServer) UnsavePost(ctx context.Context, r *postv1.UnsavePostRequest) (*postv1.UnsavePostResponse, error) {
-	return s.save.UnsavePost(ctx, r)
-}
-func (s *PostServer) GetSavedPosts(ctx context.Context, r *postv1.GetSavedPostsRequest) (*postv1.GetSavedPostsResponse, error) {
-	return s.save.GetSavedPosts(ctx, r)
-}
-func (s *PostServer) IsSaved(ctx context.Context, r *postv1.IsSavedRequest) (*postv1.IsSavedResponse, error) {
-	return s.save.IsSaved(ctx, r)
 }
 
 // ── Run ────────────────────────────────────────────────────────────────────

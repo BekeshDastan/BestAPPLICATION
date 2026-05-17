@@ -54,8 +54,6 @@ func (uc *FollowUseCase) Follow(ctx context.Context, followerID, followeeID uuid
 		return fmt.Errorf("follow: %w", err)
 	}
 	_ = uc.publisher.Publish(ctx, domain.EventUserFollowed, map[string]string{
-		"user_id":     followeeID.String(), // notification recipient
-		"actor_id":    followerID.String(), // who performed the action
 		"follower_id": followerID.String(),
 		"followee_id": followeeID.String(),
 	})

@@ -30,7 +30,6 @@ type ConversationProto struct {
 	CreatedBy     string                 `protobuf:"bytes,5,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
 	LastMessageAt int64                  `protobuf:"varint,6,opt,name=last_message_at,json=lastMessageAt,proto3" json:"last_message_at,omitempty"`
 	CreatedAt     int64                  `protobuf:"varint,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	MemberIds     []string               `protobuf:"bytes,8,rep,name=member_ids,json=memberIds,proto3" json:"member_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -112,13 +111,6 @@ func (x *ConversationProto) GetCreatedAt() int64 {
 		return x.CreatedAt
 	}
 	return 0
-}
-
-func (x *ConversationProto) GetMemberIds() []string {
-	if x != nil {
-		return x.MemberIds
-	}
-	return nil
 }
 
 type MessageProto struct {
@@ -2229,7 +2221,7 @@ var File_chat_v1_chat_proto protoreflect.FileDescriptor
 
 const file_chat_v1_chat_proto_rawDesc = "" +
 	"\n" +
-	"\x12chat/v1/chat.proto\x12\achat.v1\"\xef\x01\n" +
+	"\x12chat/v1/chat.proto\x12\achat.v1\"\xd0\x01\n" +
 	"\x11ConversationProto\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x12\n" +
@@ -2240,9 +2232,7 @@ const file_chat_v1_chat_proto_rawDesc = "" +
 	"created_by\x18\x05 \x01(\tR\tcreatedBy\x12&\n" +
 	"\x0flast_message_at\x18\x06 \x01(\x03R\rlastMessageAt\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\a \x01(\x03R\tcreatedAt\x12\x1d\n" +
-	"\n" +
-	"member_ids\x18\b \x03(\tR\tmemberIds\"\x8e\x02\n" +
+	"created_at\x18\a \x01(\x03R\tcreatedAt\"\x8e\x02\n" +
 	"\fMessageProto\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0fconversation_id\x18\x02 \x01(\tR\x0econversationId\x12\x1b\n" +

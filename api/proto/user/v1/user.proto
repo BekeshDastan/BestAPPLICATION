@@ -105,9 +105,6 @@ message DeleteAccountRequest {
 }
 message DeleteAccountResponse {}
 
-message AdminDeleteUserRequest { string user_id = 1; }
-message AdminDeleteUserResponse {}
-
 message SearchUsersRequest {
   string query  = 1;
   int32  limit  = 2;
@@ -182,7 +179,6 @@ service UserService {
   rpc UpdateProfile       (UpdateProfileRequest)       returns (UpdateProfileResponse);
   rpc UpdateAvatar        (UpdateAvatarRequest)        returns (UpdateAvatarResponse);
   rpc DeleteAccount       (DeleteAccountRequest)       returns (DeleteAccountResponse);
-  rpc AdminDeleteUser     (AdminDeleteUserRequest)     returns (AdminDeleteUserResponse);
   rpc SearchUsers         (SearchUsersRequest)         returns (SearchUsersResponse);
 
   // Follow

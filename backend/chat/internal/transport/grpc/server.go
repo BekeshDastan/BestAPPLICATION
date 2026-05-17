@@ -53,7 +53,7 @@ func domainErr(err error) error {
 
 // ── Proto converters ───────────────────────────────────────────────────────
 
-func toProtoConversation(c *domain.Conversation, memberIDs []string) *chatv1.ConversationProto {
+func toProtoConversation(c *domain.Conversation) *chatv1.ConversationProto {
 	p := &chatv1.ConversationProto{
 		Id:        c.ID.String(),
 		Type:      string(c.Type),
@@ -61,24 +61,11 @@ func toProtoConversation(c *domain.Conversation, memberIDs []string) *chatv1.Con
 		AvatarUrl: c.AvatarURL,
 		CreatedBy: c.CreatedBy.String(),
 		CreatedAt: c.CreatedAt.Unix(),
-		MemberIds: memberIDs,
 	}
 	if c.LastMessageAt != nil {
 		p.LastMessageAt = c.LastMessageAt.Unix()
 	}
 	return p
-}
-
-func listParticipantIDs(ctx context.Context, parts domain.ParticipantRepository, convID uuid.UUID) []string {
-	ps, err := parts.ListParticipants(ctx, convID)
-	if err != nil {
-		return nil
-	}
-	ids := make([]string, len(ps))
-	for i, p := range ps {
-		ids[i] = p.UserID.String()
-	}
-	return ids
 }
 
 func toProtoMessage(m *domain.Message) *chatv1.MessageProto {
@@ -103,12 +90,11 @@ func toProtoMessage(m *domain.Message) *chatv1.MessageProto {
 // ── ConversationHandler ────────────────────────────────────────────────────
 
 type ConversationHandler struct {
-	uc    *usecase.ConversationUseCase
-	parts domain.ParticipantRepository
+	uc *usecase.ConversationUseCase
 }
 
-func NewConversationHandler(uc *usecase.ConversationUseCase, parts domain.ParticipantRepository) *ConversationHandler {
-	return &ConversationHandler{uc: uc, parts: parts}
+func NewConversationHandler(uc *usecase.ConversationUseCase) *ConversationHandler {
+	return &ConversationHandler{uc: uc}
 }
 
 func (h *ConversationHandler) CreateConversation(ctx context.Context, req *chatv1.CreateConversationRequest) (*chatv1.CreateConversationResponse, error) {
@@ -128,8 +114,7 @@ func (h *ConversationHandler) CreateConversation(ctx context.Context, req *chatv
 	if err != nil {
 		return nil, domainErr(err)
 	}
-	ids := listParticipantIDs(ctx, h.parts, conv.ID)
-	return &chatv1.CreateConversationResponse{Conversation: toProtoConversation(conv, ids)}, nil
+	return &chatv1.CreateConversationResponse{Conversation: toProtoConversation(conv)}, nil
 }
 
 func (h *ConversationHandler) GetConversation(ctx context.Context, req *chatv1.GetConversationRequest) (*chatv1.GetConversationResponse, error) {
@@ -145,8 +130,7 @@ func (h *ConversationHandler) GetConversation(ctx context.Context, req *chatv1.G
 	if err != nil {
 		return nil, domainErr(err)
 	}
-	ids := listParticipantIDs(ctx, h.parts, conv.ID)
-	return &chatv1.GetConversationResponse{Conversation: toProtoConversation(conv, ids)}, nil
+	return &chatv1.GetConversationResponse{Conversation: toProtoConversation(conv)}, nil
 }
 
 func (h *ConversationHandler) ListConversations(ctx context.Context, req *chatv1.ListConversationsRequest) (*chatv1.ListConversationsResponse, error) {
@@ -160,8 +144,7 @@ func (h *ConversationHandler) ListConversations(ctx context.Context, req *chatv1
 	}
 	out := make([]*chatv1.ConversationProto, len(convs))
 	for i, c := range convs {
-		ids := listParticipantIDs(ctx, h.parts, c.ID)
-		out[i] = toProtoConversation(c, ids)
+		out[i] = toProtoConversation(c)
 	}
 	return &chatv1.ListConversationsResponse{Conversations: out}, nil
 }
@@ -213,8 +196,7 @@ func (h *ConversationHandler) CreateGroupChat(ctx context.Context, req *chatv1.C
 	if err != nil {
 		return nil, domainErr(err)
 	}
-	ids := listParticipantIDs(ctx, h.parts, conv.ID)
-	return &chatv1.CreateGroupChatResponse{Conversation: toProtoConversation(conv, ids)}, nil
+	return &chatv1.CreateGroupChatResponse{Conversation: toProtoConversation(conv)}, nil
 }
 
 func (h *ConversationHandler) AddParticipant(ctx context.Context, req *chatv1.AddParticipantRequest) (*chatv1.AddParticipantResponse, error) {

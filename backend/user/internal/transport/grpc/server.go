@@ -76,9 +76,6 @@ func (s *UserServer) UpdateAvatar(ctx context.Context, r *userv1.UpdateAvatarReq
 func (s *UserServer) DeleteAccount(ctx context.Context, r *userv1.DeleteAccountRequest) (*userv1.DeleteAccountResponse, error) {
 	return s.profile.DeleteAccount(ctx, r)
 }
-func (s *UserServer) AdminDeleteUser(ctx context.Context, r *userv1.AdminDeleteUserRequest) (*userv1.AdminDeleteUserResponse, error) {
-	return s.profile.AdminDeleteUser(ctx, r)
-}
 func (s *UserServer) SearchUsers(ctx context.Context, r *userv1.SearchUsersRequest) (*userv1.SearchUsersResponse, error) {
 	return s.profile.SearchUsers(ctx, r)
 }

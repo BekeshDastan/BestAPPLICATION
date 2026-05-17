@@ -59,7 +59,7 @@ func main() {
 	msgUC := usecase.NewMessageUseCase(convRepo, partRepo, msgRepo, reactRepo, publisher, cache, txDB)
 
 	// ── gRPC transport ─────────────────────────────────────────────────────
-	convH := grpctransport.NewConversationHandler(convUC, partRepo)
+	convH := grpctransport.NewConversationHandler(convUC)
 	msgH := grpctransport.NewMessageHandler(msgUC)
 	streamH := grpctransport.NewStreamHandler(nc, cache)
 	srv := grpctransport.NewChatServer(convH, msgH, streamH)

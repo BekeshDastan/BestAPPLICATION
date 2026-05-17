@@ -1,20 +1,6 @@
 module github.com/bekesh/social/backend/notification
 
-go 1.25.0
+go 1.22
 
-require (
-	github.com/bekesh/social/gen/go v0.0.0
-	github.com/google/uuid v1.6.0
-	github.com/jmoiron/sqlx v1.3.5
-	github.com/lib/pq v1.10.9
-	github.com/nats-io/nats.go v1.36.0
-	github.com/pressly/goose/v3 v3.21.1
-	github.com/redis/go-redis/v9 v9.6.1
-	github.com/spf13/viper v1.19.0
-	github.com/stretchr/testify v1.11.1
-	github.com/testcontainers/testcontainers-go v0.34.0
-	google.golang.org/grpc v1.81.0
-	google.golang.org/protobuf v1.36.11
-)
-
-replace github.com/bekesh/social/gen/go => ../../gen/go
+require github.com/bekesh/social/gen v0.0.0
+replace github.com/bekesh/social/gen => ../../gen/go

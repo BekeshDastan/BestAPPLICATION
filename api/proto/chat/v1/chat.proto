@@ -40,14 +40,13 @@ service ChatService {
 // ── Common messages ────────────────────────────────────────────────────────
 
 message ConversationProto {
-  string id              = 1;
-  string type            = 2;
-  string name            = 3;
-  string avatar_url      = 4;
-  string created_by      = 5;
+  string id             = 1;
+  string type           = 2;
+  string name           = 3;
+  string avatar_url     = 4;
+  string created_by     = 5;
   int64  last_message_at = 6;
-  int64  created_at      = 7;
-  repeated string member_ids = 8;
+  int64  created_at     = 7;
 }
 
 message MessageProto {

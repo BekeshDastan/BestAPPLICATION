@@ -339,20 +339,9 @@ func (uc *MessageUseCase) SendMessage(ctx context.Context, in SendMessageInput) 
 
 	if participants, err := uc.parts.ListParticipants(ctx, in.ConvID); err == nil {
 		for _, p := range participants {
-			if p.UserID == in.SenderID {
-				continue
+			if p.UserID != in.SenderID {
+				_, _ = uc.cache.IncrUnread(ctx, p.UserID)
 			}
-			_, _ = uc.cache.IncrUnread(ctx, p.UserID)
-			// One notification event per recipient (user_id = recipient).
-			_ = uc.pub.Publish(ctx, domain.EventChatMessageSent, map[string]string{
-				"message_id":      m.ID.String(),
-				"conversation_id": in.ConvID.String(),
-				"chat_id":         in.ConvID.String(),
-				"sender_id":       in.SenderID.String(),
-				"user_id":         p.UserID.String(),     // notification recipient
-				"actor_id":        in.SenderID.String(),  // who sent
-				"text":            m.Text,
-			})
 		}
 	}
 

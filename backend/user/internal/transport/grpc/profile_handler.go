@@ -77,19 +77,6 @@ func (h *ProfileHandler) DeleteAccount(ctx context.Context, req *userv1.DeleteAc
 	return &userv1.DeleteAccountResponse{}, nil
 }
 
-// AdminDeleteUser deletes a user account without password verification.
-// Authorisation is enforced by the gateway's Admin middleware.
-func (h *ProfileHandler) AdminDeleteUser(ctx context.Context, req *userv1.AdminDeleteUserRequest) (*userv1.AdminDeleteUserResponse, error) {
-	id, err := uuid.Parse(req.UserId)
-	if err != nil {
-		return nil, invalidArg("invalid user_id")
-	}
-	if err = h.profile.AdminDeleteUser(ctx, id); err != nil {
-		return nil, domainErr(err)
-	}
-	return &userv1.AdminDeleteUserResponse{}, nil
-}
-
 func (h *ProfileHandler) SearchUsers(ctx context.Context, req *userv1.SearchUsersRequest) (*userv1.SearchUsersResponse, error) {
 	users, err := h.profile.SearchUsers(ctx, req.Query, int(req.Limit), int(req.Offset))
 	if err != nil {
